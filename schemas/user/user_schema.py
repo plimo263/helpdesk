@@ -8,3 +8,4 @@ class UserSchema(Schema):
     avatar = fields.Str(dump_only=True)
     agent = fields.Bool(dump_only=True)
     last_login = fields.Str(dump_only=True)
+    sector = fields.Str(dump_only=True)

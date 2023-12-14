@@ -10,8 +10,11 @@ class User(db.Model):
     id = db.Column(db.Integer ,primary_key=True, autoincrement=True, nullable=False )
     nome = db.Column(db.String(100), nullable=False )
     senha = db.Column(db.String(100), nullable=False )
-    email = db.Column(db.String(255), nullable=True )
+    email = db.Column(db.String(255), unique = True, nullable=True )
     avatar = db.Column(db.String(255), nullable=True )
     is_agent = db.Column(db.String(1), default='N' ,nullable=False )
     ativo = db.Column(db.String(1) ,default='S' ,nullable=True )
     ultimo_login = db.Column(db.DateTime, default = func.now())
+    id_setor = db.Column(db.Integer, db.ForeignKey('sector.id'), nullable = False)
+
+    sector = db.relationship("Sector", back_populates="user")

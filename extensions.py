@@ -18,3 +18,4 @@ APP_DEBUG = True if os.getenv('APP_DEBUG') ==  '1' else False
 db = SQLAlchemy() # Conexao ao banco de dados
 login_manager = LoginManager() # Gerenciamento de login
 dir_base = os.path.dirname(__file__) # Diretorio base
+AVATAR_PATH = '/static/avatar'

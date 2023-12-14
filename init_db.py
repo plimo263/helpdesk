@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from __init__ import create_app
 from extensions import db
-from models import User
+from db import User
 
 app = create_app()
 

@@ -1,9 +1,11 @@
+"""
+Classe usada para representar uma tabela que registra usuários.
 
+"""
 from extensions import db
 from sqlalchemy import func
-from flask_login import UserMixin
 
-class User(UserMixin, db.Model):
+class User(db.Model):
 
     id = db.Column(db.Integer ,primary_key=True, autoincrement=True, nullable=False )
     nome = db.Column(db.String(100), nullable=False )

@@ -137,7 +137,6 @@ class User(UserMixin):
 
         return user
     
-
     @staticmethod
     def user_exists(id: int) -> bool:
         '''Verifica se o usuario existe no sistema pelo seu ID'''

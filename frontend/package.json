@@ -3,13 +3,42 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/roboto": "^5.0.8",
+    "@hookform/resolvers": "^3.3.2",
+    "@mui/icons-material": "^5.15.0",
+    "@mui/material": "^5.15.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
+    "@uiw/react-color": "^2.0.3",
+    "axios": "^1.6.2",
+    "emoji-picker-react": "^4.5.16",
+    "image-extensions": "^1.1.0",
+    "is-hotkey": "^0.2.0",
+    "is-url": "^1.2.4",
+    "lodash": "^4.17.21",
+    "normalize.css": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.49.2",
+    "react-quick-pinch-zoom": "^5.1.0",
+    "react-redux": "^9.0.4",
+    "react-router-dom": "^5.3.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.0"
+    "react-select": "^5.8.0",
+    "react-text-mask": "^5.5.0",
+    "react-toastify": "^9.1.3",
+    "react-use": "^17.4.2",
+    "redux": "^5.0.0",
+    "redux-thunk": "^3.1.0",
+    "slate": "^0.101.4",
+    "slate-history": "^0.100.0",
+    "slate-react": "^0.101.3",
+    "text-mask-addons": "^3.8.0",
+    "web-vitals": "^2.1.0",
+    "yup": "^1.3.3"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -34,5 +63,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "proxy": "http://localhost:5000"
 }

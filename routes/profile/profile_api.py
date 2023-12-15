@@ -68,7 +68,7 @@ class ProfilePasswordView(MethodView):
         ''' Atualiza a senha do usuário'''
         user: User = current_user
 
-        if not user.is_password_valid(item_data['password']):
+        if not user.is_my_password(item_data['password']):
             abort(400, message='A senha enviada não é a senha atual utilizada. Não é possível atualizar')
 
         user.set_password(item_data['new_password'])

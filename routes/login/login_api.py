@@ -5,7 +5,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from schemas.login.login_schema import LoginSchema 
-from models.user import User
+from models.user.user import User
 from schemas.user.user_schema import UserSchema
 
 blp = Blueprint('login_api', __name__, description = 'Api para login')

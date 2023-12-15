@@ -1,2 +1,2 @@
-from .user import User
-from .sector import Sector
+from .user.user import User
+from .sector.sector import Sector

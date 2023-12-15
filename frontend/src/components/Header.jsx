@@ -1,5 +1,5 @@
-import { AppBar, Button, Container, Stack } from "@mui/material";
-import React, { useCallback } from "react";
+import { AppBar, Box, Button, Container, Grow, Stack } from "@mui/material";
+import React, { useCallback, useState } from "react";
 import Logo from "./Logo";
 import Icone from "./icone";
 import { useSelector } from "react-redux";
@@ -24,7 +24,7 @@ const selectUser = (state) => state?.user;
 function Header() {
   //
   return (
-    <AppBar>
+    <AppBar position="relative">
       <Container maxWidth="md">
         <Stack direction="row" justifyContent="space-between">
           <a href="/">
@@ -38,16 +38,19 @@ function Header() {
 }
 
 const MenuUser = () => {
+  const [menuSelected, setMenuSelected] = useState(null);
   const user = useSelector(selectUser);
   const history = useHistory();
   //
   const goToManagerUsers = useCallback(() => {
+    setMenuSelected(STR.managerUsers);
     history.push("/manager_user_view");
-  }, [history]);
+  }, [history, setMenuSelected]);
   //
   const goToSectors = useCallback(() => {
+    setMenuSelected(STR.managerSectors);
     history.push("/sector_view");
-  }, [history]);
+  }, [history, setMenuSelected]);
 
   const options = [];
 
@@ -73,15 +76,23 @@ const MenuUser = () => {
   return (
     <Stack direction="row" gap={2}>
       {options.map((ele, idx) => (
-        <Button
-          sx={{ color: "white" }}
-          key={idx}
-          variant="text"
-          onClick={ele.onClick}
-          startIcon={<Icone icone={ele.icon} />}
-        >
-          {ele.name}
-        </Button>
+        <Stack key={idx} justifyContent="center">
+          <Button
+            sx={{
+              color: "white",
+            }}
+            variant="text"
+            onClick={ele.onClick}
+            startIcon={<Icone icone={ele.icon} />}
+          >
+            {ele.name}
+          </Button>
+          {menuSelected === ele.name ? (
+            <Grow key={ele.name} in unmountOnExit>
+              <Box sx={{ width: "100%", background: "white", height: 2 }} />
+            </Grow>
+          ) : null}
+        </Stack>
       ))}
     </Stack>
   );

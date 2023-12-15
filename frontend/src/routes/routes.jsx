@@ -2,11 +2,16 @@ import { Route, useLocation, Switch } from "react-router-dom";
 import { Header } from "../components";
 import Login from "./login/Login";
 import Helpdesk from "./helpdesk/helpdesk";
+import ManagerUser from "./manager_user/manager-user";
+import Sector from "./sector/sector";
+import { Box, Grow } from "@mui/material";
 
 // Todas as rotas do aplicativo
 export const ROTAS = [
   [Login.rota, Login],
   [Helpdesk.rota, Helpdesk],
+  [ManagerUser.rota, ManagerUser],
+  [Sector.rota, Sector],
 ];
 
 export default function Routes() {
@@ -14,11 +19,15 @@ export default function Routes() {
   return (
     <>
       {location && location.pathname !== "/" && <Header />}
-      <Switch location={location} key={location.pathname}>
-        {ROTAS.map((ele, idx) => (
-          <Route component={ele[1]} exact path={ele[0]} key={idx} />
-        ))}
-      </Switch>
+      <Grow in key={location.pathname} unmountOnExit>
+        <Box>
+          <Switch location={location} key={location.pathname}>
+            {ROTAS.map((ele, idx) => (
+              <Route component={ele[1]} exact path={ele[0]} key={idx} />
+            ))}
+          </Switch>
+        </Box>
+      </Grow>
     </>
   );
 }

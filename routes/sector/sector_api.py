@@ -1,10 +1,11 @@
 from operator import itemgetter
 from flask.views import MethodView
 from flask_smorest import abort, Blueprint
-from flask_login import login_required, current_user
+from flask_login import login_required
 from sqlalchemy.exc import IntegrityError
 from schemas.sector.sector_schema import SectorDelSchema, SectorPostSchema, SectorPutSchema, SectorResultSchema
 from models import Sector
+from models.sector import SectorDB
 from decorators.is_agent import is_agent
 
 blp = Blueprint('sector_api', __name__, description='Manutenção de setores do sistema')
@@ -18,7 +19,7 @@ class SectorView(MethodView):
     def get(self):
         '''Retorna todos os setores'''
 
-        return [ sector.to_dict() for sector in Sector.get_all() ]
+        return [ sector.to_dict() for sector in SectorDB().get_all_with_sector() ]
     
     @login_required
     @is_agent
@@ -29,7 +30,9 @@ class SectorView(MethodView):
         name, situation = itemgetter('name', 'situation')(item_data)
         sector: Sector = Sector(0, name, situation)
         try:
-            sector.save()
+            id = SectorDB().save(sector)
+            sector = SectorDB().get_by_id(id)
+            sector = Sector(sector.id, sector.nome, sector.situacao)
         except IntegrityError:
             abort(400, message='O setor já existe no sistema.')
         except Exception as err:
@@ -49,7 +52,7 @@ class SectorView(MethodView):
         id_sector, name, situation = itemgetter('id', 'name', 'situation')(item_data)
         sector: Sector = Sector(id_sector, name, situation)
         try:
-            sector.update()
+            SectorDB().update(sector)
         except IntegrityError:
             abort(400, message='O setor já existe no sistema.')
         except Exception as err:
@@ -69,7 +72,7 @@ class SectorView(MethodView):
         id_sector = itemgetter('id')(item_data)
         
         try:
-            Sector.delete(id_sector)
+            SectorDB().delete(id_sector)
         except IntegrityError as err:
             abort(400, message='Não é possível excluir o setor pois já foi utilizado em algum usuário')
         except Exception as err:

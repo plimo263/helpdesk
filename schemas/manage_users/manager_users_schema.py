@@ -1,6 +1,7 @@
 from marshmallow import fields, validate, ValidationError, Schema
 from models import User
-from schemas.sector.sector_schema import SectorResultSchema, SectorSchema, validator_sector
+from models.user import UserDB
+from schemas.sector.sector_schema import SectorResultSchema, validator_sector
 from schemas.success_schema import SuccessSchema 
 
 messages = {
@@ -36,7 +37,7 @@ messages = {
 
 def validate_user_exists(id: int):
     ''' Verifica se o usuario existe no sistma '''
-    if not User.user_exists(id):
+    if not UserDB().user_exists(id):
         raise ValidationError(messages['id']['invalid'])
 
 class ManagerUserIdSchema(Schema):

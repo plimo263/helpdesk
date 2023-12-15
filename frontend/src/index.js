@@ -9,10 +9,24 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
+import { Provider } from "react-redux";
+import { createStore, applyMiddleware } from "redux";
+import "react-toastify/dist/ReactToastify.css";
+
+// Importar o redux-thunk
+import reduxThunk from "redux-thunk";
+
+// Importando o rootReducer
+import rootReducer from "./redux/reducers";
+
+const store = createStore(rootReducer, applyMiddleware(reduxThunk));
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>
 );
 

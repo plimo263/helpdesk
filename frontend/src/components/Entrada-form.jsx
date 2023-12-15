@@ -166,7 +166,12 @@ const EntradaFormNormal = memo((props) => {
           multiple: props.multiple || false,
         }}
         InputProps={{
-          startAdornment: props.icon && <Icone icone={props.icon} />,
+          startAdornment: props.icon && (
+            <Icone
+              sx={{ color: ({ palette }) => palette.primary.main }}
+              icone={props.icon}
+            />
+          ),
         }}
         helperText={
           <Stack direction="row-reverse" justifyContent="space-between">
@@ -207,7 +212,12 @@ const EntradaFormNormal = memo((props) => {
               maxLength: props.maxLength ? props.maxLength : null,
             }}
             InputProps={{
-              startAdornment: props.icon && <Icone icone={props.icon} />,
+              startAdornment: props.icon && (
+                <Icone
+                  sx={{ color: ({ palette }) => palette.primary.main }}
+                  icone={props.icon}
+                />
+              ),
             }}
             helperText={
               <Stack direction="row-reverse" justifyContent="space-between">
@@ -241,7 +251,12 @@ const EntradaFormNormal = memo((props) => {
         maxLength: props.maxLength ? props.maxLength : null,
       }}
       InputProps={{
-        startAdornment: props.icon && <Icone icone={props.icon} />,
+        startAdornment: props.icon && (
+          <Icone
+            sx={{ color: ({ palette }) => palette.primary.main }}
+            icone={props.icon}
+          />
+        ),
       }}
       helperText={
         <Stack direction="row-reverse" justifyContent="space-between">
@@ -263,7 +278,12 @@ const EntradaFormNormal = memo((props) => {
 const EntradaFormSelect = memo((props) => (
   <Stack>
     <Subtitle2 align="left">
-      {props.icon && <Icone icone={props.icon} />}
+      {props.icon && (
+        <Icone
+          sx={{ color: ({ palette }) => palette.primary.main }}
+          icone={props.icon}
+        />
+      )}
       {props.label}
     </Subtitle2>
     <Select {...props} />
@@ -278,7 +298,13 @@ const EntradaFormSelect = memo((props) => (
 const EntradaFormSwitch = memo((props) => (
   <Stack>
     <Stack direction="row" alignItems="center">
-      {props.icon && <Icone icone={props.icon} />} &nbsp;&nbsp;
+      {props.icon && (
+        <Icone
+          sx={{ color: ({ palette }) => palette.primary.main }}
+          icone={props.icon}
+        />
+      )}{" "}
+      &nbsp;&nbsp;
       <FormControlLabel
         {...props}
         label={props.label}
@@ -296,7 +322,13 @@ const EntradaFormSwitch = memo((props) => (
 const EntradaFormCheckbox = memo((props) => (
   <Stack>
     <Stack direction="row" alignItems="center">
-      {props.icon && <Icone icone={props.icon} />} &nbsp;&nbsp;
+      {props.icon && (
+        <Icone
+          sx={{ color: ({ palette }) => palette.primary.main }}
+          icone={props.icon}
+        />
+      )}{" "}
+      &nbsp;&nbsp;
       <FormControlLabel
         {...props}
         label={props.label}
@@ -314,7 +346,12 @@ const EntradaFormCheckbox = memo((props) => (
 const EntradaFormRadio = memo((props) => (
   <Stack>
     <Subtitle2 align="left">
-      {props.icon && <Icone icone={props.icon} />}
+      {props.icon && (
+        <Icone
+          sx={{ color: ({ palette }) => palette.primary.main }}
+          icone={props.icon}
+        />
+      )}
       {props.label}
     </Subtitle2>
     <RadioForm {...props} size={props.size || "medium"} />

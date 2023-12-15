@@ -1,10 +1,12 @@
-from flask import Flask
+from http import HTTPStatus
+from flask import Flask, redirect, request
+from flask_smorest import abort
 from extensions import URI_DATABASE, APP_DEBUG, SECRET_KEY
 from extensions import db, login_manager
 from schemas.custom_schema import CustomApi
 from models import User
 # Rotas
-from routes import login_view, bucket_view
+from routes import login_view, bucket_view, sector_view, manager_user_view
 from routes import login_api, profile_api, sector_api, manager_user_api
 
 def create_app():
@@ -34,6 +36,12 @@ def create_app():
         if user.id == None:
             return None
         return user
+    # Redirecionando o usuario para outra pagina
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        if request.blueprint.find('_api') == -1:
+           return redirect('/')
+        abort(HTTPStatus.UNAUTHORIZED, message='Não autorizado a acessar esta rotina')
 
     api = CustomApi(app)
 
@@ -44,6 +52,8 @@ def create_app():
 
     app.register_blueprint(login_view)
     app.register_blueprint(bucket_view)
+    app.register_blueprint(sector_view)
+    app.register_blueprint(manager_user_view)
 
     app.secret_key = SECRET_KEY
     app.debug = APP_DEBUG

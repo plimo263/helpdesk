@@ -3,13 +3,14 @@ from flask.views import MethodView
 from flask_smorest import abort, Blueprint
 from flask_login import current_user, login_required
 from models import User
+from models.user import UserDB
 from routes.utils.bucket_route import BucketAuxiliar
 from schemas.profile.profile_schema import ProfileAvatarSchema, ProfileNameSchema, ProfilePasswordSchema
 from schemas.success_schema import SuccessSchema
 from schemas.user.user_schema import UserSchema
 from extensions import dir_base, AVATAR_PATH
 
-blp = Blueprint('profile', __name__, description = 'Manutenção do perfil do usuario logado')
+blp = Blueprint('profile_api', __name__, description = 'Manutenção do perfil do usuario logado')
 
 
 @blp.route('/profile_user')
@@ -32,8 +33,7 @@ class ProfileNameView(MethodView):
     def post(self, item_data):
         ''' Atualiza o nome do usuário'''
         user: User = current_user
-
-        user.set_name(item_data['name'])
+        UserDB().set_name(user.id, item_data['name'])
 
         return {'sucesso': 'Nome atualizado com sucesso.'}
 
@@ -51,13 +51,12 @@ class ProfileAvatarView(MethodView):
             abort(400, message='Avatar não enviado')
 
         path_save = os.path.join(dir_base, *AVATAR_PATH.split('/'))
-        
         BucketAuxiliar.move_bucket_to_man_folder(item_data['avatar'], path_save)
 
-        user.set_avatar(os.path.basename(item_data['avatar']))
+        UserDB().set_avatar(user.id, os.path.basename(item_data['avatar']))
 
         return {'sucesso': 'Avatar atualizado com sucesso.'}
-    
+
 @blp.route('/reset_password')
 class ProfilePasswordView(MethodView):
 
@@ -71,6 +70,5 @@ class ProfilePasswordView(MethodView):
         if not user.is_my_password(item_data['password']):
             abort(400, message='A senha enviada não é a senha atual utilizada. Não é possível atualizar')
 
-        user.set_password(item_data['new_password'])
-
+        UserDB().set_password(user.id, item_data['new_password'])
         return {'sucesso': 'Senha atualizada com sucesso.'}

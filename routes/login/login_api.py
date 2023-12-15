@@ -6,6 +6,7 @@ from flask_smorest import Blueprint, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from schemas.login.login_schema import LoginSchema 
 from models.user.user import User
+from models.user import UserAuth
 from schemas.user.user_schema import UserSchema
 
 blp = Blueprint('login_api', __name__, description = 'Api para login')
@@ -19,7 +20,7 @@ class LoginView(MethodView):
         ''' Autenticação do usuario '''
         email, password = itemgetter('username', 'password')(item_data)
 
-        user: User = User.login(email, password)
+        user: User = UserAuth().login(email, password)
         if not user:
             abort(400, message='Usuário e/ou senha incorretos')
 
@@ -31,7 +32,7 @@ class LogoutView(MethodView):
     @login_required
     def get(self):
         '''Logout da aplicação, limpa cookies e faz saída do aplicativo.'''
-        current_user.logout()
+        UserAuth().logout()
 
         return redirect('/')
 

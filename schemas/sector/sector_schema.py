@@ -1,5 +1,5 @@
 from marshmallow import fields, Schema, validate, ValidationError
-from models import Sector
+from models.sector import SectorDB
 from schemas.success_schema import SuccessSchema
 
 messages = {
@@ -19,7 +19,7 @@ messages = {
 
 def validator_sector(id: int):
     ''' Verifica se o setor existe'''
-    if not Sector.sector_exists(id):
+    if not SectorDB().sector_exists(id):
         raise ValidationError('O setor informado não existe no sistema')
 
 

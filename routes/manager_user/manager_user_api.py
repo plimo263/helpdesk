@@ -4,6 +4,7 @@ from flask_smorest import abort, Blueprint
 from flask_login import login_required
 from sqlalchemy.exc import IntegrityError
 from models import User
+from models.user import UserDB
 from db import User as UserTable
 from decorators.is_agent import is_agent
 from schemas.manage_users.manager_users_schema import ManagerUserDelSchema, ManagerUserPostSchema, ManagerUserPutSchema, ManagerUserSchema
@@ -31,9 +32,8 @@ class ManagerUserView(MethodView):
     @is_agent
     @blp.response(200, ManagerUserSchema(many=True))
     def get(self):
-        '''Retorna todos os setores'''
-
-        return [ user_to_dict(user) for user in User.get_all(to_register=True) ]
+        '''Retorna todos os usuários'''
+        return [ user_to_dict(user) for user in UserDB().get_all_rows() ]
     
     @login_required
     @is_agent
@@ -45,36 +45,13 @@ class ManagerUserView(MethodView):
         name, password, email, agent, active, id_sector = itemgetter('name', 'password', 'email', 'is_agent', 'active', 'id_sector')(item_data)
 
         try:
-            new_user: User = User.create_user(name, email, password, agent, active, id_sector)
+            new_user: User = UserDB().create_user(name, email, password, agent, active, id_sector)
         except IntegrityError as err:
             abort(400, message='Já existe um usuário registrado com este email')
         except Exception as err:
             abort(400, message='Erro ao tentar cadastrar o usuário.')
 
-        new_user = [ user_to_dict(user) for user in User.get_all(to_register=True) if user.id == new_user.id ][0]
-
-        return {
-            'data': new_user,
-            'sucesso': 'Usuario cadastrado com sucesso',
-        }
-    
-    @login_required
-    @is_agent
-    @blp.arguments(ManagerUserPostSchema)
-    @blp.response(200, ManagerUserPostSchema)
-    def post(self, item_data):
-        '''Cadastra um novo usuario no sistema'''
-
-        name, password, email, agent, active, id_sector = itemgetter('name', 'password', 'email', 'is_agent', 'active', 'id_sector')(item_data)
-
-        try:
-            new_user: User = User.create_user(name, email, password, agent, active, id_sector)
-        except IntegrityError as err:
-            abort(400, message='Já existe um usuário registrado com este email')
-        except Exception as err:
-            abort(400, message='Erro ao tentar cadastrar o usuário.')
-
-        new_user = [ user_to_dict(user) for user in User.get_all(to_register=True) if user.id == new_user.id ][0]
+        new_user = [ user_to_dict(user) for user in UserDB().get_all_rows() if user.id == new_user.id ][0]
 
         return {
             'data': new_user,
@@ -91,14 +68,14 @@ class ManagerUserView(MethodView):
         id, name, password, email, agent, active, id_sector = itemgetter('id', 'name', 'password', 'email', 'is_agent', 'active', 'id_sector')(item_data)
 
         try:
-            update_user: User = User.update_user(id, name, email, password, agent, active, id_sector)
+            update_user: User = UserDB().update_user(id, name, email, password, agent, active, id_sector)
         except IntegrityError as err:
             abort(400, message='Já existe um usuário registrado com este email')
         except Exception as err:
             print(err)
             abort(400, message='Erro ao tentar atualizar o usuário.')
 
-        update_user = [ user_to_dict(user) for user in User.get_all(to_register=True) if user.id == update_user.id ][0]
+        update_user = [ user_to_dict(user) for user in UserDB().get_all_rows() if user.id == update_user.id ][0]
 
         return {
             'data': update_user,
@@ -115,7 +92,7 @@ class ManagerUserView(MethodView):
         id = itemgetter('id')(item_data)
 
         try:
-            User.delete_user(id)
+            UserDB().delete_user(id)
         except Exception as err:
             abort(400, message='Erro ao tentar excluir o usuário.')
 

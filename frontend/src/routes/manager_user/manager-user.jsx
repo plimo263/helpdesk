@@ -16,6 +16,7 @@ import { Icone } from "../../components";
 import ManagerUserModal from "./manager-user-modal";
 import DrawerDialog from "../../components/drawer-dialog";
 import { green, red } from "@mui/material/colors";
+import OptionsMenu from "../../components/options-menu";
 
 const STR = {
   titleDelete: "Clique para excluir o usuario",
@@ -38,6 +39,7 @@ const HEADERS = [
   "SETOR",
   "É AGENTE",
   "EXCLUIR",
+  "OPÇÕES",
 ];
 
 const getColor = (status) => {
@@ -82,6 +84,8 @@ function ManagerUser() {
       _.forEach(HEADERS, (k) => {
         if (k === "AVATAR") {
           obj[k] = <Avatar alt={row.name} src={row[FIELDS[k]]} />;
+        } else if (k === "OPCOES") {
+          obj[k] = <MoreOptions />;
         } else if (k === "SETOR") {
           obj[k] = row[FIELDS[k]].name;
         } else if (k === "EXCLUIR") {
@@ -157,6 +161,10 @@ function ManagerUser() {
     </>
   );
 }
+//
+const MoreOptions = () => {
+  return <OptionsMenu />;
+};
 
 ManagerUser.rota = "/manager_user_view";
 

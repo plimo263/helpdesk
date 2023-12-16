@@ -87,7 +87,14 @@ function ManagerUserAddUpd({ managerUser }) {
 const Form = ({ managerUser, sectors }) => {
   const [wait, setWait] = useToggle();
   const dispatch = useDispatch();
-  const schema = [
+  let objValidatorError = {
+    [FIELDS_FORM.name]: obterValidador(VALIDADOR_TIPO.texto, 3),
+    [FIELDS_FORM.email]: obterValidador(VALIDADOR_TIPO.email),
+    [FIELDS_FORM.idSector]: obterValidador(VALIDADOR_TIPO.selectUnico),
+    [FIELDS_FORM.active]: obterValidador(VALIDADOR_TIPO.texto, 1),
+    [FIELDS_FORM.isAgent]: obterValidador(VALIDADOR_TIPO.texto, 1),
+  };
+  let schema = [
     {
       type: "text",
       name: FIELDS_FORM.name,
@@ -104,13 +111,22 @@ const Form = ({ managerUser, sectors }) => {
       icon: ICON_FORM.email,
       defaultValue: managerUser?.email || "",
     },
-    {
+  ];
+
+  if (!managerUser) {
+    schema.push({
       type: "password",
       name: FIELDS_FORM.password,
       label: STR.labelPassword,
       placeholder: STR.labelPassword,
       icon: ICON_FORM.password,
-    },
+    });
+    objValidatorError[FIELDS_FORM.password] = obterValidador(
+      VALIDADOR_TIPO.texto,
+      6
+    );
+  }
+  schema = schema.concat([
     {
       type: "select",
       name: FIELDS_FORM.idSector,
@@ -152,7 +168,8 @@ const Form = ({ managerUser, sectors }) => {
         md: 6,
       },
     },
-  ];
+  ]);
+
   const schemaMessageError = {
     [FIELDS_FORM.name]: STR.errorName,
     [FIELDS_FORM.email]: STR.errorEmail,
@@ -161,25 +178,21 @@ const Form = ({ managerUser, sectors }) => {
     [FIELDS_FORM.active]: STR.errorActive,
     [FIELDS_FORM.isAgent]: STR.errorIsAgent,
   };
-  const schemaValidator = yup.object().shape({
-    [FIELDS_FORM.name]: obterValidador(VALIDADOR_TIPO.texto, 3),
-    [FIELDS_FORM.email]: obterValidador(VALIDADOR_TIPO.email),
-    [FIELDS_FORM.password]: obterValidador(VALIDADOR_TIPO.texto, 6),
-    [FIELDS_FORM.idSector]: obterValidador(VALIDADOR_TIPO.selectUnico),
-    [FIELDS_FORM.active]: obterValidador(VALIDADOR_TIPO.texto, 1),
-    [FIELDS_FORM.isAgent]: obterValidador(VALIDADOR_TIPO.texto, 1),
-  });
+  const schemaValidator = yup.object().shape(objValidatorError);
   //
   const onSubmit = useCallback(
     (val) => {
       const obj = {
         [FIELDS_FORM.name]: val[FIELDS_FORM.name],
         [FIELDS_FORM.email]: val[FIELDS_FORM.email],
-        [FIELDS_FORM.password]: val[FIELDS_FORM.password],
         [FIELDS_FORM.idSector]: parseInt(val[FIELDS_FORM.idSector].value),
         [FIELDS_FORM.active]: val[FIELDS_FORM.active],
         [FIELDS_FORM.isAgent]: val[FIELDS_FORM.isAgent],
       };
+
+      if (!managerUser) {
+        obj[FIELDS_FORM.password] = val[FIELDS_FORM.password];
+      }
 
       // Quando vai atualizar o usuario.
       if (managerUser) {

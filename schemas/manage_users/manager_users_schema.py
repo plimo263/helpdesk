@@ -32,7 +32,7 @@ messages = {
     'password': {
         'invalid': 'A senha deve ter ao menos 5 caracteres',
         'required': 'Necessário informar a senha.',
-    }
+    },
 }
 
 def validate_user_exists(id: int):
@@ -43,10 +43,12 @@ def validate_user_exists(id: int):
 class ManagerUserIdSchema(Schema):
     id = fields.Int(validate=validate_user_exists, error_messages=messages['id'], required=True)
 
+class ManagerUserPasswdSchema(Schema):
+    password = fields.Str(validate=validate.Length(min=5, error=messages['password']['invalid']), error_messages=messages['password'], required=True )
+
 class ManagerUserDataSchema(Schema):
     name = fields.Str(validate=validate.Length(min = 2, error=messages['name']['invalid']), error_messages=messages['id'], required=True)
     email = fields.Email(error_messages=messages['email'], required=True)
-    password = fields.Str(validate=validate.Length(min = 5, error=messages['password']['invalid']), load_only=True, required=True, error_messages=messages['password'])
     is_agent = fields.Str(validate=validate.OneOf(["S","N"], error=messages['is_agent']['invalid']), error_messages=messages['is_agent'], required=True)
     active = fields.Str(validate=validate.OneOf(["S","N"], error=messages['active']['invalid']), error_messages=messages['active'], required=True)
     id_sector = fields.Int(validate=validator_sector, error_messages=messages['id_sector'], required=True)
@@ -56,11 +58,14 @@ class ManagerUserDataSchema(Schema):
 class ManagerUserSchema(ManagerUserIdSchema, ManagerUserDataSchema):
     pass
 
-class ManagerUserPostSchema(ManagerUserDataSchema, SuccessSchema):
+class ManagerUserPostSchema(ManagerUserDataSchema, ManagerUserPasswdSchema, SuccessSchema):
     data = fields.Nested(ManagerUserSchema, dump_only=True)
 
 class ManagerUserPutSchema(ManagerUserSchema, SuccessSchema):
     data = fields.Nested(ManagerUserSchema, dump_only=True)
 
 class ManagerUserDelSchema(ManagerUserIdSchema, SuccessSchema):
+    pass
+
+class ManagerUserResetPasswdSchema(ManagerUserIdSchema, ManagerUserPasswdSchema, SuccessSchema):
     pass

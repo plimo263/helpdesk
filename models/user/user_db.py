@@ -130,27 +130,26 @@ class UserDB:
         
         return User(new_user.id)
 
-    def update_user(self, id: int, name: str, email: str, password: str, agent: str, active: str, id_sector: int) -> User:
+    def update_user(self, id: int, name: str, email: str, agent: str, active: str, id_sector: int) -> User:
         ''' Atualiza um usuario no sistema e o retorna.
         Parameters:
             id: O id do usuario a ser atualizado
             name: O nome do usuario
             email: O email do usuario
-            password: A senha do usuario
             agent: Determina se ele é agente ou nao (S OU N)
             active: Determina se ele esta ativo ou nao (S OU N)
             id_sector: Determina qual o setor do usuario criado
         '''
-
-        user_update: UserTable = self.get_by_id(id)
-        if not user_update:
+        try:
+            user_update: UserTable = self.get_by_id(id)
+        except Exception:
             raise ValueError('O usuario informado não existe')
         
-        user_update = self.__set_attr_user(
-            user_update,
-            name, email, password, 
-            agent, active, id_sector
-        )
+        user_update.nome = name
+        user_update.email = email
+        user_update.is_agent = agent
+        user_update.ativo = active
+        user_update.id_setor = id_sector
 
         user_update = self.__up_insert_user(user_update)
 

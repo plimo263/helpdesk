@@ -70,7 +70,7 @@ class TestUserDB(unittest.TestCase):
             user = UserDB().update_user(
                 ID_NEW_USER,
                 'teste', 'teste@teste.com',
-                '12333323', 'N', 
+                'N', 
                 'S', 1
             )
             self.assertIsInstance(user, User)

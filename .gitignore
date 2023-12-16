@@ -1,0 +1,5 @@
+__pycache__
+schemas/__pycache__
+.venv
+.env
+!.env_example

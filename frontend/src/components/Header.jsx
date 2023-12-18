@@ -14,7 +14,7 @@ const STR = {
 
 const ICONS = {
   logout: "Logout",
-  home: "Helpdesk",
+  home: "Construction",
   managerSectors: "AccountTree",
   managerUsers: "Groups",
 };
@@ -41,31 +41,36 @@ const MenuUser = () => {
   const [menuSelected, setMenuSelected] = useState(window.location.pathname);
   const user = useSelector(selectUser);
   const history = useHistory();
+  const onSetRouter = useCallback(
+    (router) => {
+      setMenuSelected(router);
+      history.push(router);
+    },
+    [history, setMenuSelected]
+  );
   //
-  const goToManagerUsers = useCallback(() => {
-    setMenuSelected("/manager_user_view");
-    history.push("/manager_user_view");
-  }, [history, setMenuSelected]);
-  //
-  const goToSectors = useCallback(() => {
-    setMenuSelected("/sector_view");
-    history.push("/sector_view");
-  }, [history, setMenuSelected]);
 
-  const options = [];
+  const options = [
+    {
+      name: STR.home,
+      icon: ICONS.home,
+      route: "/helpdesk",
+      onClick: () => onSetRouter("/helpdesk"),
+    },
+  ];
 
   if (user?.agent) {
     options.push({
       name: STR.managerUsers,
       icon: ICONS.managerUsers,
       route: "/manager_user_view",
-      onClick: goToManagerUsers,
+      onClick: () => onSetRouter("/manager_user_view"),
     });
     options.push({
       name: STR.managerSectors,
       icon: ICONS.managerSectors,
       route: "/sector_view",
-      onClick: goToSectors,
+      onClick: () => onSetRouter("/sector_view"),
     });
   }
 
@@ -83,6 +88,7 @@ const MenuUser = () => {
             sx={{
               color: "white",
             }}
+            size="small"
             variant="text"
             onClick={ele.onClick}
             startIcon={<Icone icone={ele.icon} />}

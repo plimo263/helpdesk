@@ -56,11 +56,12 @@ export default async function fetchRedux(
     onSuccess(resp.data);
   } catch (e) {
     console.dir(e);
-    // if (e?.response?.data?.message) {
-    //   ToastErro(e.response.data.message);
-    // } else {
-    //   ToastErro(String(e));
-    // }
+
+    if (e?.response?.data?.message) {
+      onError(e?.response?.data?.message);
+    } else {
+      onError(String(e));
+    }
     return false;
   } finally {
     if (onWait) onWait(false);

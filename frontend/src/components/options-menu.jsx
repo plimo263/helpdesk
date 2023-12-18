@@ -8,19 +8,24 @@ function OptionsMenu({ component, title, icon, options }) {
 
   const onViewMenu = useCallback(
     (e) => {
+      e.stopPropagation();
       setAnchorEl(e.currentTarget);
     },
     [setAnchorEl]
   );
 
-  const closeMenu = useCallback(() => {
-    setAnchorEl(null);
-  }, [setAnchorEl]);
+  const closeMenu = useCallback(
+    (e) => {
+      e.stopPropagation();
+      setAnchorEl(null);
+    },
+    [setAnchorEl]
+  );
 
   const onClickItem = useCallback(
-    (onClick) => {
+    (e, onClick) => {
       onClick();
-      closeMenu();
+      closeMenu(e);
     },
     [closeMenu]
   );
@@ -36,7 +41,7 @@ function OptionsMenu({ component, title, icon, options }) {
       )}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
         {options.map((ele, idx) => (
-          <MenuItem key={idx} onClick={() => onClickItem(ele.onClick)}>
+          <MenuItem key={idx} onClick={(e) => onClickItem(e, ele.onClick)}>
             <Stack direction="row" gap={1}>
               <Icone icone={ele.icon} />
               <Body2>{ele.label}</Body2>

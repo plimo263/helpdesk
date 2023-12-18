@@ -38,17 +38,17 @@ function Header() {
 }
 
 const MenuUser = () => {
-  const [menuSelected, setMenuSelected] = useState(null);
+  const [menuSelected, setMenuSelected] = useState(window.location.pathname);
   const user = useSelector(selectUser);
   const history = useHistory();
   //
   const goToManagerUsers = useCallback(() => {
-    setMenuSelected(STR.managerUsers);
+    setMenuSelected("/manager_user_view");
     history.push("/manager_user_view");
   }, [history, setMenuSelected]);
   //
   const goToSectors = useCallback(() => {
-    setMenuSelected(STR.managerSectors);
+    setMenuSelected("/sector_view");
     history.push("/sector_view");
   }, [history, setMenuSelected]);
 
@@ -58,11 +58,13 @@ const MenuUser = () => {
     options.push({
       name: STR.managerUsers,
       icon: ICONS.managerUsers,
+      route: "/manager_user_view",
       onClick: goToManagerUsers,
     });
     options.push({
       name: STR.managerSectors,
       icon: ICONS.managerSectors,
+      route: "/sector_view",
       onClick: goToSectors,
     });
   }
@@ -87,7 +89,7 @@ const MenuUser = () => {
           >
             {ele.name}
           </Button>
-          {menuSelected === ele.name ? (
+          {menuSelected === ele.route ? (
             <Grow key={ele.name} in unmountOnExit>
               <Box sx={{ width: "100%", background: "white", height: 2 }} />
             </Grow>

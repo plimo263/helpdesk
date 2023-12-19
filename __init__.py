@@ -7,7 +7,7 @@ from schemas.custom_schema import CustomApi
 from models import User
 # Rotas
 from routes import login_view, bucket_view, sector_view, manager_user_view
-from routes import login_api, profile_api, sector_api, manager_user_api
+from routes import login_api, profile_api, sector_api, manager_user_api, config_helpdesk_api
 
 def create_app():
     ''' Cria o aplicativo servidor para utilização '''
@@ -49,6 +49,7 @@ def create_app():
     api.register_blueprint(profile_api)
     api.register_blueprint(sector_api)
     api.register_blueprint(manager_user_api)
+    api.register_blueprint(config_helpdesk_api)
 
     app.register_blueprint(login_view)
     app.register_blueprint(bucket_view)

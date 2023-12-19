@@ -6,3 +6,4 @@ from .sector.sector_view import blp as sector_view
 from .utils.bucket_route import bucket as bucket_view
 from .manager_user.manager_user_api import blp as manager_user_api
 from .manager_user.manager_user_view import blp as manager_user_view
+from .config_helpdesk.config_helpdesk_api import blp as config_helpdesk_api

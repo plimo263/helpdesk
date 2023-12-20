@@ -5,6 +5,7 @@ import Helpdesk from "./helpdesk/helpdesk";
 import ManagerUser from "./manager_user/manager-user";
 import Sector from "./sector/sector";
 import { Box, Grow } from "@mui/material";
+import ConfigHelpdesk from "./config_helpdesk/config_helpdesk";
 
 // Todas as rotas do aplicativo
 export const ROTAS = [
@@ -12,6 +13,7 @@ export const ROTAS = [
   [Helpdesk.rota, Helpdesk],
   [ManagerUser.rota, ManagerUser],
   [Sector.rota, Sector],
+  [ConfigHelpdesk.rota, ConfigHelpdesk],
 ];
 
 export default function Routes() {

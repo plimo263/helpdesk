@@ -8,8 +8,9 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 const STR = {
   logout: "Sair",
   home: "Helpdesk",
-  managerSectors: "Departamentos",
+  managerSectors: "Setores",
   managerUsers: "Usuários",
+  configHelpdesk: "Configurações",
 };
 
 const ICONS = {
@@ -17,6 +18,7 @@ const ICONS = {
   home: "Construction",
   managerSectors: "AccountTree",
   managerUsers: "Groups",
+  configHelpdesk: "Build",
 };
 
 const selectUser = (state) => state?.user;
@@ -71,6 +73,12 @@ const MenuUser = () => {
       icon: ICONS.managerSectors,
       route: "/sector_view",
       onClick: () => onSetRouter("/sector_view"),
+    });
+    options.push({
+      name: STR.configHelpdesk,
+      icon: ICONS.configHelpdesk,
+      route: "/config_helpdesk",
+      onClick: () => onSetRouter("/config_helpdesk"),
     });
   }
 

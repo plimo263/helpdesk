@@ -1,34 +1,38 @@
 from http import HTTPStatus
 from flask import Flask, redirect, request
 from flask_smorest import abort
+from config_app import Config, ConfigDebug
 from extensions import URI_DATABASE, APP_DEBUG, SECRET_KEY
 from extensions import db, login_manager
 from schemas.custom_schema import CustomApi
 from models import User
 # Rotas
-from routes import login_view, bucket_view, sector_view, manager_user_view
-from routes import login_api, profile_api, sector_api, manager_user_api, config_helpdesk_api
+from routes import login_view, bucket_view, sector_view, manager_user_view, helpdesk_view
+from routes import login_api, profile_api, sector_api, manager_user_api, config_helpdesk_api, helpdesk_api
 
-def create_app():
-    ''' Cria o aplicativo servidor para utilização '''
+def register_api(api: CustomApi) -> CustomApi:
+    '''Preenche registra as rotas de api no sistema e retorna o objeto'''
+    api.register_blueprint(login_api)
+    api.register_blueprint(profile_api)
+    api.register_blueprint(sector_api)
+    api.register_blueprint(manager_user_api)
+    api.register_blueprint(config_helpdesk_api)
+    api.register_blueprint(helpdesk_api)
 
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = URI_DATABASE
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    return api
 
-    app.config['API_TITLE'] = 'Api Rest Interatividade com o Helpdesk.'
-    app.config['API_VERSION'] = 'v1'
-    app.config['OPENAPI_VERSION'] = '3.0.3'
-    
-    if APP_DEBUG: # Ativa as paginas de manual do swagger
-        app.config['OPENAPI_URL_PREFIX'] = "/"
-        app.config['OPENAPI_SWAGGER_UI_PATH'] = "/swagger-ui"
-        app.config['OPENAPI_SWAGGER_UI_URL'] = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/'
+def register_app(app: Flask) -> Flask:
+    ''' Registra as rotas do app flask'''
+    app.register_blueprint(login_view)
+    app.register_blueprint(bucket_view)
+    app.register_blueprint(sector_view)
+    app.register_blueprint(manager_user_view)
+    app.register_blueprint(helpdesk_view)
 
-    db.init_app(app)
-    
-    login_manager.init_app(app)
-    
+    return app 
+
+def login_manager_config(login_manager):
+    ''' Configuracoes do login_manager'''
     @login_manager.user_loader
     def load_user(user_id):
         ''' Carrega o usuario logado'''
@@ -43,21 +47,26 @@ def create_app():
            return redirect('/')
         abort(HTTPStatus.UNAUTHORIZED, message='Não autorizado a acessar esta rotina')
 
+
+def create_app():
+    ''' Cria o aplicativo servidor para utilização '''
+
+    app = Flask(__name__)
+
+    if APP_DEBUG:
+        app.config.from_object(ConfigDebug())
+    else:
+        app.config.from_object(Config())
+
+    db.init_app(app)
+    
+    login_manager.init_app(app)
+
+    login_manager_config(login_manager)
+
     api = CustomApi(app)
 
-    api.register_blueprint(login_api)
-    api.register_blueprint(profile_api)
-    api.register_blueprint(sector_api)
-    api.register_blueprint(manager_user_api)
-    api.register_blueprint(config_helpdesk_api)
-
-    app.register_blueprint(login_view)
-    app.register_blueprint(bucket_view)
-    app.register_blueprint(sector_view)
-    app.register_blueprint(manager_user_view)
-
-    app.secret_key = SECRET_KEY
-    app.debug = APP_DEBUG
-
+    api = register_api(api)
+    app = register_app(app)
 
     return app

@@ -4,6 +4,10 @@ import Logo from "./Logo";
 import Icone from "./icone";
 import { useSelector } from "react-redux";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import Helpdesk from "../routes/helpdesk/helpdesk";
+import ManagerUser from "../routes/manager_user/manager-user";
+import Sector from "../routes/sector/sector";
+import ConfigHelpdesk from "../routes/config_helpdesk/config_helpdesk";
 
 const STR = {
   logout: "Sair",
@@ -56,8 +60,8 @@ const MenuUser = () => {
     {
       name: STR.home,
       icon: ICONS.home,
-      route: "/helpdesk",
-      onClick: () => onSetRouter("/helpdesk"),
+      route: Helpdesk.rota,
+      onClick: () => onSetRouter(Helpdesk.rota),
     },
   ];
 
@@ -65,20 +69,20 @@ const MenuUser = () => {
     options.push({
       name: STR.managerUsers,
       icon: ICONS.managerUsers,
-      route: "/manager_user_view",
-      onClick: () => onSetRouter("/manager_user_view"),
+      route: ManagerUser.rota,
+      onClick: () => onSetRouter(ManagerUser.rota),
     });
     options.push({
       name: STR.managerSectors,
       icon: ICONS.managerSectors,
-      route: "/sector_view",
-      onClick: () => onSetRouter("/sector_view"),
+      route: Sector.rota,
+      onClick: () => onSetRouter(Sector.rota),
     });
     options.push({
       name: STR.configHelpdesk,
       icon: ICONS.configHelpdesk,
-      route: "/config_helpdesk",
-      onClick: () => onSetRouter("/config_helpdesk"),
+      route: ConfigHelpdesk.rota,
+      onClick: () => onSetRouter(ConfigHelpdesk.rota),
     });
   }
 

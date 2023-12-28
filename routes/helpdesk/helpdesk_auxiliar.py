@@ -1251,7 +1251,7 @@ class HelpdeskAuxiliar:
 
         for row in rows_from:
             dict_status_from.setdefault(row.id, {
-                **Helpdesk._format_status(row),
+                **HelpdeskAuxiliar._format_status(row),
                 'status_para_ids': [],
                 'status_para': []
             })
@@ -1276,7 +1276,7 @@ class HelpdeskAuxiliar:
 
         for row in rows_to:
             dict_status_to.setdefault(row.id, {
-                **Helpdesk._format_status(row)
+                **HelpdeskAuxiliar._format_status(row)
             })
         
         dict_status = {}

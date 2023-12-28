@@ -59,6 +59,8 @@ class ConfigHelpdeskView(MethodView):
         c = Config()
         try:
             config_data = c.update(config_data)
+        except ValueError as err:
+            abort(400, message=str(err))
         except Exception as err:
             abort(400, message='Erro ao tentar atualizar a variavel ao sistema')
 
@@ -78,6 +80,8 @@ class ConfigHelpdeskView(MethodView):
         c = Config()
         try:
             c.delete(id)
+        except ValueError as err:
+            abort(400, message=str(err))
         except Exception as err:
             abort(400, message='Erro ao tentar excluir a variavel ao sistema')
 

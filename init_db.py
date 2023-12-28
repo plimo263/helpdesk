@@ -3,7 +3,7 @@ Descrição:
   Realiza a inicialização do banco de dados no sistema criando as tabelas iniciais.
 '''
 
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 
 from __init__ import create_app
 from extensions import db
@@ -42,10 +42,6 @@ def init_sectors():
 def init_configs():
    ''' Cria as variaveis default do sistema '''
    config_list = [
-      ConfigData(id=0, name='SMTP', value='', description='Servidor SMTP para envio dos e-mails'),
-      ConfigData(id=0, name='SMTP_PORT', value='', description='Porta do servidor SMTP para envio dos e-mails'),
-      ConfigData(id=0, name='LOGIN_EMAIL', value='', description='Endereço de e-mail usado para autenticação e envio dos emails'),
-      ConfigData(id=0, name='LOGIN_PASSWD', value='', description='Senha do e-mail que vai autenticar e realizar o envio dos e-mails'),
       ConfigData(id=0, name='DAYS_OF_WAIT_USER', value='10', description='Quantidade de dias que um chamado pode ficar no status AGUARDANDO USUÁRIO'),
    ]
 

@@ -1,5 +1,5 @@
 
-from typing import Dict
+from typing import Dict, List
 from .config_data import ConfigData
 from .config_db import ConfigDB
 
@@ -8,6 +8,7 @@ class Config:
 
     def __init__(self) -> None:
         self.__configDB = ConfigDB()
+        self.__no_delete: List[str] = ['DAYS_OF_WAIT_USER']
 
     def save(self, config: ConfigData) -> ConfigData:
         ''' Cria uma nova configuração no sistema, caso o nome da configuração já 
@@ -43,6 +44,11 @@ class Config:
             ConfigData(id=1, name='TESTE', value='2', description='UMA DESCRICAO')
 
         '''
+        in_config = self.__configDB.get(id=config.id)
+
+        if in_config.nome in self.__no_delete and in_config.nome != config.name:
+            raise ValueError(f"{in_config.nome!r} não pode ter o nome alterado, pois ela é importante para o sistema.")
+        
         self.__configDB.update(config)
         return config
 
@@ -58,6 +64,11 @@ class Config:
             >>> c.delete(1)
 
         '''
+        in_config = self.__configDB.get(id=id)
+
+        if in_config.nome in self.__no_delete:
+            raise ValueError(f"{in_config.nome!r} não pode ser excluída pois é uma coniguração importante do sistema.")
+
         self.__configDB.delete(id)
 
     def get(self, **kwargs) -> ConfigData:

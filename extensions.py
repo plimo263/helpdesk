@@ -19,3 +19,6 @@ db = SQLAlchemy() # Conexao ao banco de dados
 login_manager = LoginManager() # Gerenciamento de login
 dir_base = os.path.dirname(__file__) # Diretorio base
 AVATAR_PATH = '/static/avatar'
+
+PATH_FILES_VARIABLES = os.path.join(dir_base, 'static', 'variados')
+DIR_WEB_VARIABLES = os.path.join('static', 'variados')

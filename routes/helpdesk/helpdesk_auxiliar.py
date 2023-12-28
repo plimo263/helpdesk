@@ -1,10 +1,28 @@
-from typing import Dict, List
+import os
+import json
+from typing import Dict, List, Tuple
 from datetime import datetime
+from flask import render_template, request
 from flask_login import current_user
-from sqlalchemy import func, text
-from db import Ticket
-from extensions import db
+from sqlalchemy import func, text, and_, desc, asc, label
+import visao_html
+from db import (
+    Ticket, TicketInteracao, TicketCopia, 
+    TicketAnexos, TicketAssunto, TicketStatus,
+    TicketStatusDePara
+)
+from db import User as UserTable
+from extensions import db, DIR_WEB_VARIABLES
 from models import User
+from models.user import UserDB 
+from models.config.config_db import ConfigDB
+from models.sender.sender import Sender
+from utils.files import Files
+
+POR_PAGINA = 10
+DIAS_AUTO_FECHAMENTO = 'DAYS_OF_WAIT_USER'
+
+CAMINHO_ACESSAR_ANEXO_HELPDESK = '/static/helpdesk'
 
 class HelpdeskAuxiliar:
 
@@ -53,11 +71,13 @@ class HelpdeskAuxiliar:
     @staticmethod
     def add_helpdesk(id_user: int, id_subject: int, title: str, id_status: int) -> Dict:
         ''' Cria o novo helpdesk no sistema e o retorna
+
         Parameters:
             id_user: Identificacao do solicitante
             id_subject: ID do assunto a ser tratado
             title: Titulo do helpdesk
             id_status: ID do status do helpdesk
+
         Exapmles:
             >>> Helpdesk.add_helpdesk(1, 1, 'PROBLEMA', 1)
             {
@@ -102,10 +122,11 @@ class HelpdeskAuxiliar:
         # Recupera o helpdesk
         filter_helpdesk = (Ticket.id == ticket.id,)
         return HelpdeskAuxiliar.get_helpdesk_list(filter_helpdesk)[0]
-    #[TODO]
+
     @staticmethod
     def add_interaction(id_ticket: int, id_user: int, description: str, id_status: int, id_status_to: int = None, is_first: bool = None) -> Dict:
         ''' Registra a interação e a retorna.
+
         Parameters:
             id_ticket: ID do ticket
             id_user: Identificacao do solicitante
@@ -131,7 +152,7 @@ class HelpdeskAuxiliar:
         '''
 
         if is_first:
-            status_actualy = [ item for item in Helpdesk.get_status() if item['id'] == id_status ]
+            status_actualy = [ item for item in HelpdeskAuxiliar.get_status() if item['id'] == id_status ]
             ticket_interaction: TicketInteracao = TicketInteracao(
                 idticket = id_ticket,
                 dtinteracao = func.now(),
@@ -141,8 +162,8 @@ class HelpdeskAuxiliar:
                 para_interacao = status_actualy[0]['descricao']
             )
         else:
-            status_name_of = [ item for item in Helpdesk.get_status() if item['id'] == id_status ][0]['descricao']
-            status_name_to = [ item for item in Helpdesk.get_status() if item['id'] == id_status_to ][0]['descricao']
+            status_name_of = [ item for item in HelpdeskAuxiliar.get_status() if item['id'] == id_status ][0]['descricao']
+            status_name_to = [ item for item in HelpdeskAuxiliar.get_status() if item['id'] == id_status_to ][0]['descricao']
             ticket_interaction: TicketInteracao = TicketInteracao(
                 idticket = id_ticket,
                 dtinteracao = func.now(),
@@ -159,11 +180,19 @@ class HelpdeskAuxiliar:
             db.session.rollback()
             raise err
         
-        return Helpdesk.interactions(id_ticket)[-1]
+        return HelpdeskAuxiliar.interactions(id_ticket)[-1]
 
     @staticmethod
     def update_status(id_ticket: int, idstatus: int):
-        ''' Atualiza o status do ticket para o novo status informado '''
+        ''' Atualiza o status do ticket para o novo status informado. Caso 
+        o ticket não exista um ValueError é lançado e caso não consiga 
+        atualizar o status uma Exception é lançada.
+        
+        Parameters:
+            id_ticket: O id do ticket a ser atualizado o status
+            idstatus: O id do novo status do ticket
+
+        '''
 
         tkt: Ticket = Ticket.query.filter(Ticket.id == id_ticket).first()
         if not tkt:
@@ -179,7 +208,14 @@ class HelpdeskAuxiliar:
     
     @staticmethod
     def ticket_finish(id_ticket: int):
-        ''' Finalizacao ticket marcando a data de fechamento '''
+        ''' Finalizacao ticket marcando a data de fechamento. Caso o ticket 
+        não exista um ValueError é lançado e caso não consiga atualizar o ticket 
+        um Exception é lançado.
+        
+        Parameters:
+            id_ticket: O id do  ticket a ser finalizado no sistema
+        
+        '''
         tkt: Ticket = Ticket.query.filter(Ticket.id == id_ticket).first()
         if not tkt:
             raise ValueError('O ticket informado não existe')
@@ -194,7 +230,9 @@ class HelpdeskAuxiliar:
         
     @staticmethod
     def add_copy_to_helpdesk(id_ticket: int, id_user_copy_list: List):
-        ''' Registra os usuarios que devem ser copiados no helpdesk.
+        ''' Registra os usuarios que devem ser copiados no ticket aberto. 
+        Caso não consiga criar a copia do ticket uma Exception é lançada.
+
         Examples:
             >>> Helpdesk.add_copy_to_helpdesk(1, [2] )
         
@@ -214,11 +252,14 @@ class HelpdeskAuxiliar:
     
     @staticmethod
     def save_attach_file(id_ticket: int, id_interaction: int, attach_file: str):
-        ''' Registra o anexo salvo a interação 
+        ''' Registra o anexo salvo a interação ao ticket. Caso não consiga 
+        registrar o anexo uma Exception é lançada. 
+
         Parameters:
             id_ticket: O ID do ticket a ser registrado
             id_interaction: O ID da interação do ticket que o anexo deve ser registrado
             attach_file: Uma string que representa o nome do arquivo a ser inserido
+
         '''
         tkt_attach: TicketAnexos = TicketAnexos(
             idinteracao = id_interaction,
@@ -235,17 +276,20 @@ class HelpdeskAuxiliar:
 
     @staticmethod
     def get_requester() -> List[Dict]:
-        ''' Recupera uma lista com os solicitantes formatados'''
-        rows = Helpdesk._get_rows_details(tuple())
+        ''' Recupera uma lista com os solicitantes formatados.        
+        
+        '''
+        rows = HelpdeskAuxiliar._get_rows_details(tuple())
         set_of_requesters = { row.id_usuario for row in rows }
         
         list_of_requesters = [ {
-                'id_usuario': reg['id_usuario'],
-                'nome': reg['nome'],
-                'avatar': reg['avatar'],
-                'grupo_acesso': reg['grupo_acesso'],
-                'email': reg['email'],
-            } for reg in  modelo.Utils.todos_usuarios() if reg['id_usuario'] in set_of_requesters 
+                'id_usuario': reg.id,
+                'nome': reg.name,
+                'avatar': reg.avatar,
+                'grupo_acesso': reg.sector_name,
+                'email': reg.email,
+            } for reg in UserDB().get_all_with_user() 
+            if reg.id in set_of_requesters 
         ]
 
         return sorted(list_of_requesters, key=lambda x: x['id_usuario'])
@@ -269,7 +313,7 @@ class HelpdeskAuxiliar:
         rows = TicketAssunto.query.filter( *filter ).all()
 
         return [
-            Helpdesk._format_subject(row)
+            HelpdeskAuxiliar._format_subject(row)
             if with_situation else {
                 'id': row.id,
                 'descricao': row.descricao,
@@ -289,7 +333,7 @@ class HelpdeskAuxiliar:
                 2: 20
             }
         '''
-        filter = Helpdesk.obter_parametro_consulta_helpdeskV2()
+        filter = HelpdeskAuxiliar.obter_parametro_consulta_helpdeskV2()
 
         rows = TicketAssunto.query\
         .join(
@@ -311,7 +355,7 @@ class HelpdeskAuxiliar:
     def is_status_of_to(status_of: int, status_to: int) -> bool:
         ''' Verifica se o status_of pode ser atualizado para o status_to'''
         # Retorna um dicionario com o status_of sendo a chave e uma lista de status_to
-        status_dict = Helpdesk.status_x_status()
+        status_dict = HelpdeskAuxiliar.status_x_status()
         if not status_of in status_dict:
             return False
         
@@ -365,7 +409,7 @@ class HelpdeskAuxiliar:
     @staticmethod
     def totalizator_of_status() -> Dict:
         ''' Retorna os status com seus totalizadores baseado no usuario logado '''
-        filter = Helpdesk.obter_parametro_consulta_helpdeskV2()
+        filter = HelpdeskAuxiliar.obter_parametro_consulta_helpdeskV2()
 
         rows = TicketStatus.query.join(
             Ticket, 
@@ -424,8 +468,8 @@ class HelpdeskAuxiliar:
         '''
         # Subquery para recuperar o nome do agente
         sub_agent_name = db.session.query(
-            AdmUsuario.id_usuario,
-            AdmUsuario.nome,
+            UserTable.id,
+            UserTable.nome,
         ).subquery()
 
         # Subquery para recuperar a ultima interacao da solicitacao
@@ -444,11 +488,11 @@ class HelpdeskAuxiliar:
             TicketAssunto, 
             TicketAssunto.id == Ticket.idassunto
         ).join(
-            AdmUsuario, 
-            AdmUsuario.id_usuario == Ticket.id_usuario
+            UserTable, 
+            UserTable.id == Ticket.id_usuario
         ).outerjoin(
             sub_agent_name,
-            sub_agent_name.c.id_usuario == Ticket.id_agente,
+            sub_agent_name.c.id == Ticket.id_agente,
         ).outerjoin(
             sub_last_interaction,
             and_(
@@ -457,8 +501,8 @@ class HelpdeskAuxiliar:
         ).add_columns(
             Ticket.id.label('id'),
             Ticket.id_usuario.label('id_usuario'),
-            AdmUsuario.nome.label('solicitante'),
-            AdmUsuario.email.label('email'),
+            UserTable.nome.label('solicitante'),
+            UserTable.email.label('email'),
             TicketAssunto.descricao.label('assunto'),
             label('nome_agente', sub_agent_name.c.nome),
             TicketStatus.descricao.label('status'),
@@ -469,7 +513,7 @@ class HelpdeskAuxiliar:
         
 
         if order_by:
-            column = Helpdesk.get_column_name(column_order)
+            column = HelpdeskAuxiliar.get_column_name(column_order)
             if order_by == 'asc':
                 query = query.order_by(asc(column))
             else:
@@ -500,9 +544,9 @@ class HelpdeskAuxiliar:
             ] for row in rows
         ]
 
-        user_x_avatar = { reg['id_usuario']: reg['avatar'] for reg in modelo.Utils.todos_usuarios() }
+        user_x_avatar = { reg.id: reg.avatar for reg in UserDB.get_all_with_user() }
 
-        return Helpdesk.format_tickets_recovery(rows_list, user_x_avatar)
+        return HelpdeskAuxiliar.format_tickets_recovery(rows_list, user_x_avatar)
 
     @staticmethod
     def obter_colunas_ordenaveis() -> dict:
@@ -519,84 +563,88 @@ class HelpdeskAuxiliar:
 
     @staticmethod
     def auto_fechamento_ticket():
-        ''' Realiza o auto-fechamento dos tickets que estão aguardando usuario'''
+        ''' Realiza o auto-fechamento dos tickets que estão aguardando usuario
+        [TODO]
+        '''
         STATUS_AGUARDANDO = 6
         
         # Pega a o valor da variavel HELPDESK_AUTO_FECHAR que corresponde aos dias 
         # que o ticket pode ficar aberto
-        DIAS_EM_ABERTO = modelo.Utils.obter_variaveis_globais([HELPDESK_AUTO_FECHAR])[HELPDESK_AUTO_FECHAR]
-        DIAS_EM_ABERTO = 10 if DIAS_EM_ABERTO is None else DIAS_EM_ABERTO 
+        days_of_wait_user = ConfigDB().get(name=DIAS_AUTO_FECHAMENTO)
+        DIAS_EM_ABERTO = 10 if days_of_wait_user is None else int(days_of_wait_user.value)
 
-        # Recupera todos os tickets com status aguardando usuario
-        SQL = querys.HELPDESK_TICKETS.format(
-            """
-            WHERE t.idstatus = {} AND DATE_ADD( 
-                    DATE_FORMAT(
-                        (SELECT MAX(dtinteracao) from ticket_interacao where idticket = t.id), 
-                        '%Y-%m-%d'
-                    ), INTERVAL {} DAY 
-                ) <= DATE_FORMAT(NOW(), '%Y-%m-%d')
-            """.format(
-                STATUS_AGUARDANDO, 
-                DIAS_EM_ABERTO
-            )
-        )
-        c = modelo.Consulta(SQL, *modelo.param_mysql)
-        if len(c) == 0:
-            return False
-        # Frase que irá seguir no corpo do email marcando
-        # Como resolvido
-        FRASE_TICKET_FECHADO = [
-            {
-                "type": "paragraph", 
-                "children": [
-                    {
-                        "text": "Ticket encerrado por falta de interação há {} dias".format(
-                            DIAS_EM_ABERTO
-                        )
-                    }
-                ]
-            }
-        ]
-        #
-        for item in c.getRegistros():
-            _ticket_id = item[0]
-            Helpdesk.update_status(_ticket_id, STATUS_RESOLVIDO)
+        # # Recupera todos os tickets com status aguardando usuario
+        # SQL = querys.HELPDESK_TICKETS.format(
+        #     """
+        #     WHERE t.idstatus = {} AND DATE_ADD( 
+        #             DATE_FORMAT(
+        #                 (SELECT MAX(dtinteracao) from ticket_interacao where idticket = t.id), 
+        #                 '%Y-%m-%d'
+        #             ), INTERVAL {} DAY 
+        #         ) <= DATE_FORMAT(NOW(), '%Y-%m-%d')
+        #     """.format(
+        #         STATUS_AGUARDANDO, 
+        #         DIAS_EM_ABERTO
+        #     )
+        # )
+        # c = modelo.Consulta(SQL, *modelo.param_mysql)
+        # if len(c) == 0:
+        #     return False
+        # # Frase que irá seguir no corpo do email marcando
+        # # Como resolvido
+        # FRASE_TICKET_FECHADO = [
+        #     {
+        #         "type": "paragraph", 
+        #         "children": [
+        #             {
+        #                 "text": "Ticket encerrado por falta de interação há {} dias".format(
+        #                     DIAS_EM_ABERTO
+        #                 )
+        #             }
+        #         ]
+        #     }
+        # ]
+        # #
+        # for item in c.getRegistros():
+        #     _ticket_id = item[0]
+        #     Helpdesk.update_status(_ticket_id, STATUS_RESOLVIDO)
 
-            # Aqui recupera os detalhes do ticket obter_detalhes_ticket 
-            # para pegar as informacoes dos envolvidos
-            _ticket_detalhes = Helpdesk.obter_detalhes_ticket(_ticket_id)
+        #     # Aqui recupera os detalhes do ticket obter_detalhes_ticket 
+        #     # para pegar as informacoes dos envolvidos
+        #     _ticket_detalhes = Helpdesk.obter_detalhes_ticket(_ticket_id)
 
-            # E insere o incremento na tabela de interacao sobre este status
-            # Insere um incremento
-            Helpdesk.add_interaction(
-                id_ticket=_ticket_id,
-                id_user=_ticket_detalhes['id_usuario'],
-                description=json.dumps(FRASE_TICKET_FECHADO, ensure_ascii=False),
-                id_status=STATUS_AGUARDANDO,
-                id_status_to=STATUS_RESOLVIDO,
-            )
+        #     # E insere o incremento na tabela de interacao sobre este status
+        #     # Insere um incremento
+        #     Helpdesk.add_interaction(
+        #         id_ticket=_ticket_id,
+        #         id_user=_ticket_detalhes['id_usuario'],
+        #         description=json.dumps(FRASE_TICKET_FECHADO, ensure_ascii=False),
+        #         id_status=STATUS_AGUARDANDO,
+        #         id_status_to=STATUS_RESOLVIDO,
+        #     )
             
-            titulo = _ticket_detalhes['titulo']
-            # Titulo para o email 
-            titulo_mensagem = 'Ticket #{} [{}]'.format(_ticket_id, titulo)
+        #     titulo = _ticket_detalhes['titulo']
+        #     # Titulo para o email 
+        #     titulo_mensagem = 'Ticket #{} [{}]'.format(_ticket_id, titulo)
             
-            # Recupera os emails dos envolvidos
-            _lista_emails = [
-                reg['email']
-                for reg in _ticket_detalhes['envolvidos'] 
-                if not reg['email'] is None and len(reg['email']) > 0
-            ]
-            # Envia os emails notificando todos os envolvidos
-            Helpdesk.enviar_email_helpdeskV2(
-                _lista_emails, titulo_mensagem, _ticket_id
-             )
+        #     # Recupera os emails dos envolvidos
+        #     _lista_emails = [
+        #         reg['email']
+        #         for reg in _ticket_detalhes['envolvidos'] 
+        #         if not reg['email'] is None and len(reg['email']) > 0
+        #     ]
+        #     # Envia os emails notificando todos os envolvidos
+        #     Helpdesk.enviar_email_helpdeskV2(
+        #         _lista_emails, titulo_mensagem, _ticket_id
+        #      )
 
     @staticmethod
     def is_late_ticket(status_ticket: str, date_limit: datetime) -> bool:
-        ''' Verifica se o ticket esta atrasado baseado em seu status e data limite para resolução'''
+        ''' Verifica se o ticket esta atrasado baseado em seu status 
+        e data limite para resolução
+        '''
         data_atual = datetime.strptime(datetime.now().strftime('%Y-%m-%d'), '%Y-%m-%d')
-        # Nomes dos status que não verificam o atrasado
+        
         status_nao_atrasado = ['Encerrado', 'Resolvido']
 
         return (
@@ -607,7 +655,9 @@ class HelpdeskAuxiliar:
 
     @staticmethod
     def format_tickets_recovery(regs: List, user_x_avatar: Dict) -> List[Dict]:
-        ''' Retorna a lista de tickets enviados para um modelo que pode ser retornado via JSON
+        ''' Retorna a lista de tickets enviados para um modelo 
+        que pode ser retornado via JSON
+
         Parameters:
             regs: Uma lista com os campos do registro do ticket para formatação
         Examples:
@@ -653,7 +703,7 @@ class HelpdeskAuxiliar:
                 'email': reg[3], 
                 'assunto': reg[4], 'agente': reg[5], 
                 'status': reg[6],
-                'atrasado': Helpdesk.is_late_ticket(reg[6], reg[8]),
+                'atrasado': HelpdeskAuxiliar.is_late_ticket(reg[6], reg[8]),
                 'ultima_interacao': str(reg[7]),
                 'prazo': str(reg[8]),
                 'titulo': reg[9]
@@ -664,10 +714,10 @@ class HelpdeskAuxiliar:
     @staticmethod
     def obter_parametro_consulta_helpdesk():
         ''' Verifica qual o perfil do usuario e retorna o parametro where correto para filtrar os dados'''
-        usuario = modelo.Usuario()
-        ID_USER = usuario.getID()
+        usuario = User()
+        ID_USER = usuario.get_id()
         #
-        is_agente_helpdesk = Helpdesk.is_agent(ID_USER)
+        is_agente_helpdesk = HelpdeskAuxiliar.is_agent(ID_USER)
         if is_agente_helpdesk: # Vê de todas as plantas
             SQL_PARAM_USER = " "
         else: # Ve somente suas solicitacoes
@@ -680,10 +730,10 @@ class HelpdeskAuxiliar:
     @staticmethod
     def obter_parametro_consulta_helpdeskV2() -> Tuple:
         ''' Verifica qual o perfil do usuario e retorna o parametro where correto para filtrar os dados'''
-        usuario = modelo.Usuario()
-        ID_USER = usuario.getID()
+        usuario = User()
+        ID_USER = usuario.get_id()
         #
-        is_agente_helpdesk = Helpdesk.is_agent(ID_USER)
+        is_agente_helpdesk = HelpdeskAuxiliar.is_agent(ID_USER)
         if is_agente_helpdesk: # Vê de todas as plantas
             #SQL_PARAM_USER = " "
             return tuple()
@@ -697,8 +747,8 @@ class HelpdeskAuxiliar:
         ''' Retorna a lista com os detalhes sobre as interacoes '''
         # Subquery para recuperar o nome do agente
         sub_agent_name = db.session.query(
-            AdmUsuario.id_usuario,
-            AdmUsuario.nome,
+            UserTable.id,
+            UserTable.nome,
         ).subquery()
 
         # Subquery para recuperar a ultima interacao da solicitacao
@@ -724,11 +774,11 @@ class HelpdeskAuxiliar:
         ).join(
             TicketAssunto, TicketAssunto.id == Ticket.idassunto
         ).join(
-            AdmUsuario, 
-            AdmUsuario.id_usuario == Ticket.id_usuario,
+            UserTable, 
+            UserTable.id == Ticket.id_usuario,
         ).outerjoin(
             sub_agent_name,
-            sub_agent_name.c.id_usuario == Ticket.id_agente,
+            sub_agent_name.c.id == Ticket.id_agente,
         ).outerjoin(
             sub_last_interaction,
             and_(
@@ -744,13 +794,13 @@ class HelpdeskAuxiliar:
         ).add_columns(
             Ticket.id.label('id'),
             Ticket.id_usuario.label('id_usuario'),
-            AdmUsuario.nome.label('solicitante'),
-            AdmUsuario.email.label('email'),
+            UserTable.nome.label('solicitante'),
+            UserTable.email.label('email'),
             Ticket.dtabertura,
             Ticket.dtfechamento,
             Ticket.dtprazo,
             label('ultima_interacao', func.max(sub_last_interaction.c.dtinteracao)),
-            label('id_agente', sub_agent_name.c.id_usuario),
+            label('id_agente', sub_agent_name.c.id),
             label('nome_agente', sub_agent_name.c.nome),
             TicketAssunto.descricao.label('assunto'),
             TicketStatus.descricao.label('status'),
@@ -765,8 +815,8 @@ class HelpdeskAuxiliar:
     @staticmethod
     def calculo_total_atendimentosV2() -> dict:
         ''' Obtem um dicionario com o total de itens, e a quantidade de paginas gerados'''
-        filter = Helpdesk.obter_parametro_consulta_helpdeskV2()
-        rows = Helpdesk._get_rows_details(filter)
+        filter = HelpdeskAuxiliar.obter_parametro_consulta_helpdeskV2()
+        rows = HelpdeskAuxiliar._get_rows_details(filter)
 
         TOTAL_TICKETS = len(rows)
 
@@ -809,8 +859,8 @@ class HelpdeskAuxiliar:
     def interactions(id_ticket: int) -> List[Dict]:
         ''' Retorna detalhes de todas as interações relacionadas ao chamado '''
         sub_name_colab = db.session.query( 
-            AdmUsuario.nome,
-            AdmUsuario.id_usuario
+            UserTable.nome,
+            UserTable.id
         ).subquery()
 
         sub_solici = db.session.query(
@@ -824,7 +874,7 @@ class HelpdeskAuxiliar:
 
         rows = TicketInteracao.query.outerjoin(
             sub_name_colab,
-            sub_name_colab.c.id_usuario == TicketInteracao.id_usuario,
+            sub_name_colab.c.id == TicketInteracao.id_usuario,
         ).outerjoin(
             sub_solici,
             sub_solici.c.id == TicketInteracao.idticket
@@ -843,9 +893,9 @@ class HelpdeskAuxiliar:
 
         list_id_interactions = [row.idinteracao for row in rows ]
 
-        dict_attachs = Helpdesk._get_attach_files(list_id_interactions)
+        dict_attachs = HelpdeskAuxiliar._get_attach_files(list_id_interactions)
 
-        user_x_avatar = { reg['id_usuario']: reg['avatar'] for reg in modelo.Utils.todos_usuarios() }
+        user_x_avatar = { reg.id: reg.avatar for reg in UserDB().get_all_with_user() }
 
         return [
             {
@@ -868,17 +918,17 @@ class HelpdeskAuxiliar:
         ''' Retorna a lista de todos os envolvidos no chamado '''
 
         rows = TicketCopia.query.join(
-            AdmUsuario,
-            AdmUsuario.id_usuario == TicketCopia.id_usuario
+            UserTable,
+            UserTable.id == TicketCopia.id_usuario
         ).add_columns(
             TicketCopia.id_usuario,
-            AdmUsuario.nome,
-            AdmUsuario.email,
+            UserTable.nome,
+            UserTable.email,
         ).filter(
             TicketCopia.idticket == id_ticket
         ).all()
 
-        user_x_avatar = { reg['id_usuario']: reg['avatar'] for reg in modelo.Utils.todos_usuarios() }
+        user_x_avatar = { reg.id: reg.avatar for reg in UserDB().get_all_with_user() }
 
         return [{
                 'id_usuario': row.id_usuario,
@@ -895,11 +945,11 @@ class HelpdeskAuxiliar:
 
         filter = (Ticket.id == ticket_id,)
 
-        rows = Helpdesk._get_rows_details(filter)
+        rows = HelpdeskAuxiliar._get_rows_details(filter)
         if len(rows) == 0:
             return {'erro': 'Ticket não encontrado', 'codigo': 99}
         
-        user_x_avatar = { reg['id_usuario']: reg['avatar'] for reg in modelo.Utils.todos_usuarios() }
+        user_x_avatar = { reg.id: reg.avatar for reg in UserDB().get_all_with_user() }
 
         row = rows[0]
         obj = {
@@ -925,9 +975,9 @@ class HelpdeskAuxiliar:
             'envolvidos': [],
         }
 
-        obj['historico'] = Helpdesk.interactions(ticket_id)
+        obj['historico'] = HelpdeskAuxiliar.interactions(ticket_id)
         # Interacoes
-        obj['envolvidos'] = Helpdesk.get_copy_helpdesk(ticket_id)
+        obj['envolvidos'] = HelpdeskAuxiliar.get_copy_helpdesk(ticket_id)
 
         return obj
     
@@ -935,20 +985,21 @@ class HelpdeskAuxiliar:
     def obter_agentes() -> list:
         '''Recupera todos os agentes do helpdesk'''
         agentes = []
-        for reg in modelo.Utils.usuarios_com_variavel('HELPDESK_AGENTE'):
-            id_user, nom, email, avatar = itemgetter('id_usuario', 'nome', 'email', 'avatar')(reg)
-            agentes.append({
-                "email": email,
-                "id_usuario": id_user,
-                "nome": nom,
-                "avatar": avatar
-            })
+        for reg in UserDB().get_all_with_user():
+            if reg.agent:
+                id_user, nom, email, avatar = reg.id, reg.name, reg.email, reg.avatar
+                agentes.append({
+                    "email": email,
+                    "id_usuario": id_user,
+                    "nome": nom,
+                    "avatar": avatar
+                })
         return agentes
 
     @staticmethod
     def enviar_email_helpdeskV2(list_emails, title_message, ticket_id ):
         ''' Recebe e envia o email'''
-        dados = Helpdesk.obter_detalhes_ticket(ticket_id)
+        dados = HelpdeskAuxiliar.obter_detalhes_ticket(ticket_id)
 
         corpo_solicitante = render_template('helpdesk/colaborador.tpl', 
             nome=dados['nome'],
@@ -969,7 +1020,7 @@ class HelpdeskAuxiliar:
                 enviado_por = 'agente' if item['is_agente'] else 'solicitante',
                 nome=item['nome'],
                 data_interacao=datetime.strptime(item['data_interacao'], '%Y-%m-%d %H:%M:%S').strftime('%d/%m/%Y %H:%M'),
-                cor_status= Helpdesk.get_status(item['para'])[0]['cor'],
+                cor_status= HelpdeskAuxiliar.get_status(item['para'])[0]['cor'],
                 nome_status = item['para'],
                 corpo_mensagem= visao_html.body_format(item['descricao'])
             )
@@ -981,9 +1032,10 @@ class HelpdeskAuxiliar:
             corpo_agente=corpo_agente,
             status=status_ticket
         )
-        if not config.APP_DEBUG:
-            modelo.Utils.enviar_email_pdf(list_emails, corpo_email, title_message)
-    
+
+        sender = Sender(list_emails, corpo_email, title_message)
+        sender.send_email_pdf()
+
     @staticmethod
     def obter_descricao_formatada(descri) -> list:
         # Mapeia a descricao para ver se existe alguma tag img. caso exista salve a imagem
@@ -992,15 +1044,16 @@ class HelpdeskAuxiliar:
             if 'url' in desc:
                 conteudo_base64 = desc['url'].replace('data:image/png;base64,', '').encode()
                 
-                novo_path_imagem = modelo.Utils.salvar_base64(
-                    conteudo_base64, DIR_PATH_VARIADOS)
+                novo_path_imagem = Files.save_base64( conteudo_base64 )
                 if not 'erro' in novo_path_imagem:
-                    desc['url'] = config.URL + os.path.join( DIR_WEB_VARIADOS, os.path.basename(novo_path_imagem['arquivo']) )
+                    desc['url'] =  request.url + os.path.join( 
+                        DIR_WEB_VARIABLES, 
+                        os.path.basename( novo_path_imagem['arquivo'] ) 
+                    )
 
             nova_descricao.append(desc)
         return nova_descricao
 
-    
     @staticmethod
     def is_subject_exists(id_subject: int) -> bool:
         ''' Verifica se este assunto existe '''
@@ -1008,7 +1061,7 @@ class HelpdeskAuxiliar:
         if not ticket_subject:
             return False
         return True
-    
+
     @staticmethod
     def _format_subject(subject: TicketAssunto) -> Dict:
         ''' Format o assunto enviado e o retorna '''
@@ -1023,7 +1076,7 @@ class HelpdeskAuxiliar:
     @staticmethod
     def update_subject(id_subject: int, name_subject: str, praz: int, situation: str):
         ''' Recebe um assunto e aplica uma atualização sobre o mesmo'''
-        if not Helpdesk.is_subject_exists(id_subject):
+        if not HelpdeskAuxiliar.is_subject_exists(id_subject):
             raise ValueError('O Assunto enviado não existe')
 
         ticket_subject: TicketAssunto = TicketAssunto.query.filter(TicketAssunto.id == id_subject).first()
@@ -1037,7 +1090,7 @@ class HelpdeskAuxiliar:
             db.session.rollback()
             raise err
         
-        return Helpdesk._format_subject(ticket_subject)
+        return HelpdeskAuxiliar._format_subject(ticket_subject)
     
     @staticmethod
     def add_subject(name_subject: str, praz: int):
@@ -1055,12 +1108,12 @@ class HelpdeskAuxiliar:
             db.session.rollback()
             raise err
 
-        return Helpdesk._format_subject(ticket_subject)
+        return HelpdeskAuxiliar._format_subject(ticket_subject)
     
     @staticmethod
     def del_subject(id_subject: int) -> bool:
         ''' Exclui o assunto criado, caso possivel se não for possível uma excessão é lançada'''
-        if not Helpdesk.is_subject_exists(id_subject):
+        if not HelpdeskAuxiliar.is_subject_exists(id_subject):
             return True
         
         ticket_subject: TicketAssunto = TicketAssunto.query.filter(TicketAssunto.id == id_subject).first()
@@ -1098,12 +1151,12 @@ class HelpdeskAuxiliar:
             db.session.rollback()
             raise err
         
-        return Helpdesk._format_status(ticket_status)
+        return HelpdeskAuxiliar._format_status(ticket_status)
 
     @staticmethod
     def update_status_reg(id_status: int, name: str, authorized: str, color: str, situation: str) -> Dict:
         ''' Atualiza um status no sistema alterando nome, setor autorizado a interagir e descricao, assim como situacao'''
-        if not Helpdesk.is_status_exists(id_status):
+        if not HelpdeskAuxiliar.is_status_exists(id_status):
             raise ValueError('O status informado não existe')
         
         tkt_sts: TicketStatus = TicketStatus.query.filter(TicketStatus.id == id_status).first()
@@ -1118,13 +1171,13 @@ class HelpdeskAuxiliar:
             db.session.rollback()
             raise err 
         
-        return Helpdesk._format_status(tkt_sts)
+        return HelpdeskAuxiliar._format_status(tkt_sts)
 
     @staticmethod
     def update_status_to(id_status: int, ids_status_to: List[int]):
         ''' Atualiza a lista de opções que o status pode ir, ou seja o status de pode ir para a lista enviada.'''
         # Primeiro exclui todos os status que ele atende atualmente
-        Helpdesk.del_status_to(id_status)
+        HelpdeskAuxiliar.del_status_to(id_status)
 
         # Agora Passa sobre a lista e inclui cada status PARA ao status DE
         for id_st_to in ids_status_to:
@@ -1138,12 +1191,11 @@ class HelpdeskAuxiliar:
             except Exception as err:
                 db.session.rollback()
                 raise err
-        
 
     @staticmethod
     def del_status_to(id_status: int):
         '''Remove a lista de status para que o status enviado pode seguir '''
-        if not Helpdesk.is_status_exists(id_status):
+        if not HelpdeskAuxiliar.is_status_exists(id_status):
             raise ValueError('O status informado não existe')
         
         try:
@@ -1155,7 +1207,7 @@ class HelpdeskAuxiliar:
     @staticmethod
     def del_status(id_status: int):
         ''' Realiza a exclusão do status pelo ID informado'''
-        Helpdesk.del_status_to(id_status)
+        HelpdeskAuxiliar.del_status_to(id_status)
 
         sts = TicketStatus.query.filter(TicketStatus.id == id_status).first()
         try:
@@ -1190,7 +1242,7 @@ class HelpdeskAuxiliar:
 
         dict_status_from = {
             row.id: { 
-                **Helpdesk._format_status(row), 
+                **HelpdeskAuxiliar._format_status(row), 
                 'status_para_ids': [],
                 'status_para': []
             } 
@@ -1238,7 +1290,7 @@ class HelpdeskAuxiliar:
             del dict_status[k]['status_para_ids']
 
         return [dict_status[k] for k in dict_status ]
-    
+
     @staticmethod
     def _format_status(ticket_status) -> Dict:
         ''' Formata o ticket retornando dados do ticket formatado '''

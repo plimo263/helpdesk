@@ -2,9 +2,11 @@
 Classe usada para salvar arquivos no sistema de arquivos do projeto
 """
 import os
+import base64
 import time
 from hashlib import sha1
 from PIL import Image, ExifTags
+from extensions import PATH_FILES_VARIABLES
 
 class Files:
     @staticmethod
@@ -111,3 +113,22 @@ class Files:
             # cases: image don't have getexif
             print("ERRO FUNCAO DE ROTACIONAR IMAGEM")
             return False
+    
+    @staticmethod
+    def save_base64(content_base64, path_to_save: str = PATH_FILES_VARIABLES, ext: str = 'jpg') -> dict:
+        ''' Recebe um conteudo base64 e salva no caminho retornando o local onde o arquivo foi salvo '''
+        retorno = {}
+
+        novo_nome = sha1( str(time()).encode() ).hexdigest()
+        nome_g = os.path.join(path_to_save, '{}.{}'.format(novo_nome, ext) )
+        with open(nome_g, 'wb') as arq:
+            arq.write(base64.decodebytes(content_base64) )
+        #
+        retorno['arquivo'] = nome_g
+
+        im = Image.open(nome_g)
+        larg, alt = im.size
+        Files.rotate_image(nome_g, (larg, alt))
+
+        return retorno
+

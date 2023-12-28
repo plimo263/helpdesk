@@ -2,12 +2,8 @@
 Objeto modelo de dados de configuração
 '''
 from typing import Dict
-
 from db.config_table import ConfigTable
 
-#from collections import namedtuple
-
-#ConfigData = namedtuple('ConfigData', ['id', 'name', 'value', 'description'])
 
 class ConfigData:
 
@@ -19,7 +15,12 @@ class ConfigData:
     
 
     def to_dict(self) -> Dict:
-        ''' Retorna uma representação de um dicionario do objeto'''
+        ''' Retorna uma representação de um dicionario do objeto ConfigData.
+        
+        Examples:
+            >>> c_data = ConfigData(id=1, name='NOVO_RECURSO', value='12', description='Recurso totalmente novo no sistema')
+        
+        '''
         return {
             'id': self.id,
             'name': self.name,
@@ -33,7 +34,8 @@ class ConfigData:
         objeto configTable.
         
         Parameters:
-            data_db: Uma instancia de um ORM ConfigTable
+            data_db: Uma instancia de um ORM ConfigTable para carregar um objeto ConfigData
+
         Examples:
             >>>> c = ConfigTable.query.get(1)
             >>>> c_data = ConfigData.from_db(c)

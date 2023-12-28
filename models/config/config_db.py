@@ -9,7 +9,12 @@ class ConfigDB:
     '''
 
     def __up_insert_db(self, data_db: ConfigTable) -> ConfigTable:
-        '''Atualiza/Insere registros no banco de dados'''
+        '''Atualiza/Insere registros no banco de dados
+        
+        Parameters:
+            data_db: Uma instancia de um ORM ConfigTable que deve ser adicionado/atualizado no banco de dados.
+
+        '''
         try:
             db.session.add(data_db)
             db.session.commit()
@@ -97,9 +102,11 @@ class ConfigDB:
     def get(self, **kwargs) -> ConfigTable:
         ''' Recupera um registro de configuração baseado em um parametro nomeado enviado. Caso 
         não seja encontrada a config uma Exception ValueError será lançada.
+
         Parameters:
             name: O nome da configuração
             id: O identificador da configuração.
+
         Examples:
             >>> c = ConfigDB()
             >>> c.get(id=1)
@@ -119,6 +126,7 @@ class ConfigDB:
 
     def get_all(self) -> List[ConfigTable]:
         ''' Retorna todos os registros existentes no sistema do configTable.
+
         Examples:
             >>> c = ConfigDB()
             >>> c.get_all()
@@ -129,9 +137,10 @@ class ConfigDB:
 
     def config_exists(self, **kwargs) -> bool:
         ''' Verifica se a configuração existe baseado no parametro.
+
         Parameters:
             id: Consulta baseado no id
-            name: Consulta baseado no nome da configuracao
+            name: Consulta baseado no nome da configuração
         '''
         if 'id' in kwargs:
             try:

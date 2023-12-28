@@ -21,7 +21,6 @@ class User(UserMixin):
     sector_name = None
 
     def __init__(self, id) -> None:
-        #user: UserTable = UserDB().get_by_id(id)
         user: UserTable = db.session.get(UserTable, id)
         if not user:
             raise ValueError('Usuário não existe')
@@ -29,7 +28,12 @@ class User(UserMixin):
         self.__init_user(user)
 
     def __init_user(self, user: UserTable):
-        ''' Instancia um usuario'''
+        ''' Instancia um usuario no sistema.
+        
+        Parameters:
+            user: O registro do banco de dados de um usuário.
+        
+        '''
         self.id = user.id
         self.name = user.nome
         self.email = user.email
@@ -40,6 +44,7 @@ class User(UserMixin):
 
     def to_dict(self) -> Dict:
         ''' Retorna uma representação em forma de dicionario do usuário 
+
         Examples:
             >>> user = User(1)
             >>> user.to_dict()
@@ -66,12 +71,15 @@ class User(UserMixin):
 
     def is_my_password(self, password: str) -> bool:
         ''' Verifica se o password enviado é realmente do usuário.
+
         Parameters:
             password: Uma string que representa a senha do usuário
+
         Examples:
             >>> u = User(1)
             >>> u.is_my_password('123')
             False
+
         '''
         #user: UserTable = UserDB().get_by_id(self.id)
         user: UserTable = db.session.get(UserTable, self.id)
@@ -84,6 +92,7 @@ class User(UserMixin):
 
     def is_agent(self):
         ''' Verifica se o usuario é um agente ou nao.
+
         Examples:
             >>> u = User(1)
             >>> u.is_agent()

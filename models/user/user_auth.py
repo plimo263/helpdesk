@@ -9,10 +9,12 @@ class UserAuth:
 
     def login(self, email: str, password: str) -> User | None:
         '''Valida se o usuário é autenticado, retornando uma instancia 
-        de User ou None.
+        de User ou None, caso ele não esteja ativo.
+
         Parameters:
-            email: O email para login do usuário
-            password: A senha para login do usuário
+            email: O email para login do usuário a plataforma.
+            password: A senha para login do usuário a plataforma.
+
         Examples:
             >>> UserAuth().login('fulano@gmail.com', '123')
             User
@@ -32,5 +34,9 @@ class UserAuth:
 
     def logout(self):
         ''' Realiza o logout do usuario, limpando sua autenticação
-        do servidor.'''
+        do servidor.
+        
+        Examples:
+            >>> UserAuth().logout()
+        '''
         logout_user()

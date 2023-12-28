@@ -21,8 +21,9 @@ class UserAuth:
         '''
         try:
             user: UserTable = UserDB().get_by_email(email)
-            if not check_password_hash(user.senha, password):
+            if not check_password_hash(user.senha, password) or user.ativo != 'S':
                 return None
+
             user = UserDB().register_last_login(user.id)
             user: User = User(user.id)
         except Exception as err:

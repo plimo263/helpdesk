@@ -22,7 +22,7 @@ class LoginView(MethodView):
 
         user: User = UserAuth().login(email, password)
         if not user:
-            abort(400, message='Usuário e/ou senha incorretos')
+            abort(400, message='Usuário e/ou senha incorretos ou usuário inativo.')
 
         return {'sucesso': 'Usuário autenticado com sucesso !'}
 

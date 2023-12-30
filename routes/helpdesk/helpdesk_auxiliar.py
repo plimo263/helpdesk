@@ -544,7 +544,7 @@ class HelpdeskAuxiliar:
             ] for row in rows
         ]
 
-        user_x_avatar = { reg.id: reg.avatar for reg in UserDB.get_all_with_user() }
+        user_x_avatar = { reg.id: reg.avatar for reg in UserDB().get_all_with_user() }
 
         return HelpdeskAuxiliar.format_tickets_recovery(rows_list, user_x_avatar)
 
@@ -714,8 +714,8 @@ class HelpdeskAuxiliar:
     @staticmethod
     def obter_parametro_consulta_helpdesk():
         ''' Verifica qual o perfil do usuario e retorna o parametro where correto para filtrar os dados'''
-        usuario = User()
-        ID_USER = usuario.get_id()
+        usuario: User = current_user
+        ID_USER = usuario.id
         #
         is_agente_helpdesk = HelpdeskAuxiliar.is_agent(ID_USER)
         if is_agente_helpdesk: # Vê de todas as plantas
@@ -730,8 +730,8 @@ class HelpdeskAuxiliar:
     @staticmethod
     def obter_parametro_consulta_helpdeskV2() -> Tuple:
         ''' Verifica qual o perfil do usuario e retorna o parametro where correto para filtrar os dados'''
-        usuario = User()
-        ID_USER = usuario.get_id()
+        usuario: User = current_user
+        ID_USER = usuario.id
         #
         is_agente_helpdesk = HelpdeskAuxiliar.is_agent(ID_USER)
         if is_agente_helpdesk: # Vê de todas as plantas

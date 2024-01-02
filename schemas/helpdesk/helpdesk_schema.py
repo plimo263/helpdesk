@@ -1,8 +1,10 @@
 from typing import Dict, List
 from marshmallow import fields, Schema, validate, ValidationError
+from schemas.success_schema import SuccessSchema
 from routes.helpdesk.helpdesk_auxiliar import HelpdeskAuxiliar
 from models.user.user_db import UserDB
-from db import TicketStatus, TicketAssunto
+from extensions import db
+from db import TicketStatus, TicketAssunto, Ticket
 from routes.utils.bucket_route import BucketAuxiliar
 
 messages = {
@@ -56,6 +58,18 @@ messages = {
         'invalid': 'O arquivo não foi enviado.',
         'required': 'A propriedade de arquivo é requerida.'
     },
+    'id_agente': {
+        'invalid': 'O agente enviado é invalido.',
+        'required': 'O agente enviado é requerido.'
+    },
+    'id_ticket': {
+        'invalid': 'O ticket enviado não existe',
+        'required': 'O id do ticket é requerido.'
+    },
+    'atrasado': {
+        'invalid': 'Atrasado precisa ser true ou false',
+        'required': 'Atrasado é requerido'
+    }
 }
 
 def validate_column_order(column: str):
@@ -116,7 +130,36 @@ class HelpdeskValidate:
         for file_path in file_list:
             if not BucketAuxiliar.file_exists_in_bucket(file_path):
                 raise ValidationError(messages['arquivo']['invalid'])
+    
+    @staticmethod
+    def validate_agent(id_agent: int):
+        ''' Verifica se o agente existe '''
+        agent_list = [ row['id_usuario'] for row in  HelpdeskAuxiliar.obter_agentes()]
+        if not int(id_agent) in agent_list:
+            raise ValidationError(messages['id_agente']['invalid'])
+    
+    @staticmethod
+    def validate_ticket(id_ticket: int):
+        ''' Verifica se o ticket existe '''
 
+        tkt = db.session.get(Ticket, id_ticket)
+        if not tkt:
+            raise ValidationError(messages['id_ticket']['invalid'])
+
+
+class HelpdeskTicketSchema(Schema):
+    agente = fields.Str()
+    assunto = fields.Str()
+    atrasado = fields.Bool()
+    avatar = fields.Str()
+    email = fields.Email()
+    id = fields.Int()
+    id_usuario = fields.Int()
+    prazo = fields.Str()
+    solicitante = fields.Str()
+    status = fields.Str()
+    titulo = fields.Str()
+    ultima_interacao = fields.Str()
 
 class HelpdeskGetSchema(Schema):
     dados = fields.Bool( error_messages=messages['dados'])
@@ -126,7 +169,7 @@ class HelpdeskGetSchema(Schema):
     coluna = fields.Str(validate=validate_column_order)
     ticket = fields.Int(error_messages=messages['ticket'])
 
-class HelpdeskPostSchema(Schema):
+class HelpdeskPostSchema(SuccessSchema):
     enviar_email = fields.Bool(
         error_messages=messages['enviar_email'], required = True
     )
@@ -164,3 +207,54 @@ class HelpdeskPostSchema(Schema):
         error_messages=messages['arquivo'], 
         required = True
     )
+    data = fields.Nested(HelpdeskTicketSchema, dump_only=True)
+
+class HelpdeskIdTicketSchema(Schema):
+    id_ticket = fields.Int(
+        validate=HelpdeskValidate.validate_ticket, 
+        error_messages=messages['id_ticket'], required = True
+    )
+
+class HelpdeskPatchSchema(HelpdeskIdTicketSchema, SuccessSchema):
+    id_agente = fields.Int(
+        validate=HelpdeskValidate.validate_agent, 
+        error_messages=messages['id_agente'], required = True
+    )
+    data = fields.Nested(HelpdeskTicketSchema, dump_only=True)
+
+class HelpdeskPutSchema(HelpdeskIdTicketSchema, SuccessSchema):
+    enviar_email = fields.Bool(
+        error_messages=messages['enviar_email'], required = True
+    )
+    arquivo = fields.List(
+        fields.Str(),
+        validate=HelpdeskValidate.validate_files, 
+        error_messages=messages['arquivo'], 
+        required = True
+    )
+    idstatus_de = fields.Int(
+        validate=HelpdeskValidate.validate_idstatus, 
+        error_messages=messages['idstatus'], required = True
+    )
+    idstatus_para = fields.Int(
+        validate=HelpdeskValidate.validate_idstatus, 
+        error_messages=messages['idstatus'], required = True
+    )
+    descricao = fields.List(
+        fields.Dict(
+            keys=fields.Str(),
+            values=fields.Raw(),
+        ),
+        validate=HelpdeskValidate.validate_descricao, 
+        error_messages=messages['descricao'], required = True
+    )
+    data = fields.Nested(HelpdeskTicketSchema, dump_only=True)
+
+class HelpdeskFiltroSchema(Schema):
+    id_ticket = fields.Str(validate=HelpdeskValidate.validate_ticket, error_messages=messages['id_ticket'])
+    assunto  = fields.Str(validate=HelpdeskValidate.validate_idassunto, error_messages=messages['idassunto'])
+    solicitante = fields.Str(validate=HelpdeskValidate.validate_user, error_messages=messages['id_usuario'])
+    agente = fields.Str(validate=HelpdeskValidate.validate_agent, error_messages=messages['id_agente'])
+    status  = fields.Str(validate=HelpdeskValidate.validate_idstatus, error_messages=messages['idstatus'])
+    atrasado = fields.Bool( error_messages=messages['atrasado'])
+

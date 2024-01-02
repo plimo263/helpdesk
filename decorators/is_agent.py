@@ -4,6 +4,7 @@ from flask_login import current_user
 from flask_smorest import abort
 
 def is_agent(func):
+    ''' Verifica se o usuario logado é o agente responsavel'''
 
     def f(*args, **kwargs):
 

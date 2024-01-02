@@ -7,8 +7,13 @@ from extensions import db, login_manager
 from schemas.custom_schema import CustomApi
 from models import User
 # Rotas
-from routes import login_view, bucket_view, sector_view, manager_user_view, helpdesk_view
-from routes import login_api, profile_api, sector_api, manager_user_api, config_helpdesk_api, helpdesk_api
+from routes import (
+    login_view, bucket_view, sector_view, manager_user_view, helpdesk_view,
+)
+from routes import (
+    login_api, profile_api, sector_api, manager_user_api, config_helpdesk_api, 
+    helpdesk_api, helpdesk_assunto_api
+)
 
 def register_api(api: CustomApi) -> CustomApi:
     '''Preenche registra as rotas de api no sistema e retorna o objeto'''
@@ -18,6 +23,7 @@ def register_api(api: CustomApi) -> CustomApi:
     api.register_blueprint(manager_user_api)
     api.register_blueprint(config_helpdesk_api)
     api.register_blueprint(helpdesk_api)
+    api.register_blueprint(helpdesk_assunto_api)
 
     return api
 

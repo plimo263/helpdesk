@@ -1,7 +1,7 @@
 import os
 import json
 from typing import Dict, List, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import render_template, request
 from flask_login import current_user
 from sqlalchemy import func, text, and_, desc, asc, label
@@ -96,17 +96,14 @@ class HelpdeskAuxiliar:
                 "titulo": "PROBLEMA"
             }
         '''
+        ta_prazo = db.session.get(TicketAssunto, id_subject)
+        day_of_praz = datetime.now() + timedelta(days=int(ta_prazo.prazo))
         # Cadastra o helpdesk
         ticket: Ticket = Ticket(
             id_usuario = id_user, 
             dtabertura = datetime.now(),
             dtfechamento = None,
-            dtprazo = func.date_add(
-                func.now(), 
-                text(
-                    f" INTERVAL ( SELECT ta.prazo FROM ticket_assunto ta WHERE ta.id = {id_subject}) DAY"
-                )
-             ),
+            dtprazo = day_of_praz,
             titulo = title,
             idstatus = id_status,
             idassunto = id_subject

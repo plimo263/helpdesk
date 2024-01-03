@@ -3,7 +3,7 @@ from flask import Flask, redirect, request
 from flask_smorest import abort
 from config_app import Config, ConfigDebug
 from extensions import URI_DATABASE, APP_DEBUG, SECRET_KEY
-from extensions import db, login_manager
+from extensions import db, login_manager, mail, dir_base
 from schemas.custom_schema import CustomApi
 from models import User
 # Rotas
@@ -15,6 +15,7 @@ from routes import (
     helpdesk_api, helpdesk_assunto_api, helpdesk_status_api, 
     helpdesk_gestao_api
 )
+from utils.sender import AttachEmail, SenderEmail
 
 def register_api(api: CustomApi) -> CustomApi:
     '''Preenche registra as rotas de api no sistema e retorna o objeto'''
@@ -56,7 +57,6 @@ def login_manager_config(login_manager):
            return redirect('/')
         abort(HTTPStatus.UNAUTHORIZED, message='Não autorizado a acessar esta rotina')
 
-
 def create_app():
     ''' Cria o aplicativo servidor para utilização '''
 
@@ -68,7 +68,9 @@ def create_app():
         app.config.from_object(Config())
 
     db.init_app(app)
-    
+
+    mail.init_app(app)
+
     login_manager.init_app(app)
 
     login_manager_config(login_manager)

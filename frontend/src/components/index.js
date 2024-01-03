@@ -5,6 +5,15 @@ import Icone from "./icone";
 import DrawerExibicao from "./drawer";
 import DialogExibicao from "./dialog";
 import Confirmar from "./confirmar";
+import SemDados from "./sem-dados";
+import Tab from "./tab";
+import ScrollInfinito from "./scroll-infinito";
+import EditorTextRich from "./editor-text-rich";
+import BotaoIcone from "./botao-icone";
+import ContainerAdaptavel from "./container-adaptavel";
+import DrawerDialog from "./drawer-dialog";
+import InputBusca from "./input-busca";
+import Pesquisando from "./pesquisando";
 
 import {
   H6,
@@ -39,4 +48,13 @@ export {
   Caption,
   DrawerExibicao,
   DialogExibicao,
+  SemDados,
+  Tab,
+  ScrollInfinito,
+  EditorTextRich,
+  BotaoIcone,
+  DrawerDialog,
+  ContainerAdaptavel,
+  InputBusca,
+  Pesquisando,
 };

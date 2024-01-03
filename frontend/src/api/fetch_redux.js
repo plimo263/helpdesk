@@ -54,13 +54,13 @@ export default async function fetchRedux(
     }
     // Deu tudo certo execute a funcao repassada para caso de sucesso
     onSuccess(resp.data);
-  } catch (e) {
-    console.dir(e);
-
-    if (e?.response?.data?.message) {
-      onError(e?.response?.data?.message);
+  } catch (error) {
+    if (error?.response?.data?.message) {
+      ToastErro(error?.response?.data?.message);
+    } else if (error?.message) {
+      ToastErro(error?.message);
     } else {
-      onError(String(e));
+      ToastErro(String(error));
     }
     return false;
   } finally {

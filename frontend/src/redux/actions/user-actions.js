@@ -1,5 +1,4 @@
 import fetchRedux from "../../api/fetch_redux";
-import { ToastErro } from "../../utils/toast-erro";
 
 const ROUTES = ["/profile_user"];
 

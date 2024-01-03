@@ -119,7 +119,7 @@ class Files:
         ''' Recebe um conteudo base64 e salva no caminho retornando o local onde o arquivo foi salvo '''
         retorno = {}
 
-        novo_nome = sha1( str(time()).encode() ).hexdigest()
+        novo_nome = sha1( str(time.time()).encode() ).hexdigest()
         nome_g = os.path.join(path_to_save, '{}.{}'.format(novo_nome, ext) )
         with open(nome_g, 'wb') as arq:
             arq.write(base64.decodebytes(content_base64) )

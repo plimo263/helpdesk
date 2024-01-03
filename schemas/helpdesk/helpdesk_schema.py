@@ -250,11 +250,40 @@ class HelpdeskPutSchema(HelpdeskIdTicketSchema, SuccessSchema):
     )
     data = fields.Nested(HelpdeskTicketSchema, dump_only=True)
 
+
+class HelpdeskFiltroValidate:
+
+    @staticmethod
+    def validate_status(status: str):
+        for id_status in status.split(','):
+            HelpdeskValidate.validate_idstatus(id_status)
+    
+    @staticmethod
+    def validate_ticket(ticket: str):
+        for id_ticket in ticket.split(','):
+            HelpdeskValidate.validate_ticket(id_ticket)
+    
+    @staticmethod
+    def validate_assunto(assunto: str):
+        for id_assunto in assunto.split(','):
+            HelpdeskValidate.validate_idassunto(id_assunto)
+    
+    @staticmethod
+    def validate_usuario(usuario: str):
+        for id_usuario in usuario.split(','):
+            HelpdeskValidate.validate_user(id_usuario)
+    
+    @staticmethod
+    def validate_agent(agent: str):
+        for id_agent in agent.split(','):
+            HelpdeskValidate.validate_agent(id_agent)
+
+
 class HelpdeskFiltroSchema(Schema):
-    id_ticket = fields.Str(validate=HelpdeskValidate.validate_ticket, error_messages=messages['id_ticket'])
-    assunto  = fields.Str(validate=HelpdeskValidate.validate_idassunto, error_messages=messages['idassunto'])
-    solicitante = fields.Str(validate=HelpdeskValidate.validate_user, error_messages=messages['id_usuario'])
+    id_ticket = fields.Str(validate=HelpdeskFiltroValidate.validate_ticket, error_messages=messages['id_ticket'])
+    assunto  = fields.Str(validate=HelpdeskFiltroValidate.validate_assunto, error_messages=messages['idassunto'])
+    solicitante = fields.Str(validate=HelpdeskFiltroValidate.validate_usuario, error_messages=messages['id_usuario'])
     agente = fields.Str(validate=HelpdeskValidate.validate_agent, error_messages=messages['id_agente'])
-    status  = fields.Str(validate=HelpdeskValidate.validate_idstatus, error_messages=messages['idstatus'])
+    status  = fields.Str(validate=HelpdeskFiltroValidate.validate_status, error_messages=messages['idstatus'])
     atrasado = fields.Bool( error_messages=messages['atrasado'])
 

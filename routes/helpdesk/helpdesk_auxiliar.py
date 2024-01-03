@@ -12,7 +12,7 @@ from db import (
     TicketStatusDePara
 )
 from db import User as UserTable
-from extensions import db, DIR_WEB_VARIABLES
+from extensions import URL_PUBLIC, db, DIR_WEB_VARIABLES
 from models import User
 from models.user import UserDB 
 from models.config.config_db import ConfigDB
@@ -1040,10 +1040,10 @@ class HelpdeskAuxiliar:
         for desc in descri:
             if 'url' in desc:
                 conteudo_base64 = desc['url'].replace('data:image/png;base64,', '').encode()
-                
+
                 novo_path_imagem = Files.save_base64( conteudo_base64 )
                 if not 'erro' in novo_path_imagem:
-                    desc['url'] =  request.url + os.path.join( 
+                    desc['url'] =  URL_PUBLIC + os.path.join( 
                         DIR_WEB_VARIABLES, 
                         os.path.basename( novo_path_imagem['arquivo'] ) 
                     )

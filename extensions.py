@@ -7,6 +7,7 @@ from flask_mail import Mail
 load_dotenv()
 
 # Variaveis de configuração da aplicacao
+URL_PUBLIC = os.getenv('URL_PUBLIC')
 URI_DATABASE = os.getenv('URI_DATABASE')
 SECRET_KEY = os.getenv('SECRET_KEY')
 EMAIL_USER = os.getenv('EMAIL_USER')
@@ -25,4 +26,4 @@ dir_base = os.path.dirname(__file__) # Diretorio base
 AVATAR_PATH = '/static/avatar'
 
 PATH_FILES_VARIABLES = os.path.join(dir_base, 'static', 'variados')
-DIR_WEB_VARIABLES = os.path.join('static', 'variados')
+DIR_WEB_VARIABLES = os.path.join('/static', 'variados')

@@ -69,5 +69,7 @@ class HeldeskAssuntoView(MethodView):
             }
         except IntegrityError:
             return abort(400, message='Não foi possível excluir o assunto pois o mesmo já existe em algum helpdesk. Uma opção é marca-lo como inativo.')
+        except ValueError as err:
+            return abort(400, message=str(err))
         except Exception as err:
             return abort(400, message='Erro ao tentar excluir o assunto')

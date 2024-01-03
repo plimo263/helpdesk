@@ -251,13 +251,11 @@ export const helpdeskGetAssunto = () => (dispatch) => {
 };
 // Adicionar/atualizar assunto
 export const helpdeskAddUpdAssunto = (data, setWait) => (dispatch) => {
-  const formData = new FormData();
-  formData.append("dados", JSON.stringify(data));
   //  Abrir um novo ticket
   fetchRedux(
     ROTAS[2],
     data.id_assunto ? "PUT" : "POST",
-    formData,
+    data,
     (resposta) => {
       toast.dark(resposta.sucesso, {
         type: "success",
@@ -275,13 +273,11 @@ export const helpdeskAddUpdAssunto = (data, setWait) => (dispatch) => {
 };
 // Excluir
 export const helpdeskDelAssunto = (data, setWait) => (dispatch) => {
-  const formData = new FormData();
-  formData.append("dados", JSON.stringify(data));
   //  Abrir um novo ticket
   fetchRedux(
     ROTAS[2],
     "DELETE",
-    formData,
+    data,
     (resposta) => {
       toast.dark(resposta.sucesso, {
         type: "success",
@@ -315,12 +311,10 @@ export const helpdeskGetStatus = () => (dispatch) => {
 };
 // Adicionar/atualizar status
 export const helpdeskAddUpdStatus = (data, setWait) => (dispatch) => {
-  const formData = new FormData();
-  formData.append("dados", JSON.stringify(data));
   fetchRedux(
     ROTAS[3],
     data.id_status ? "PUT" : "POST",
-    formData,
+    data,
     (resposta) => {
       toast.dark(resposta.sucesso, {
         type: "success",
@@ -338,13 +332,11 @@ export const helpdeskAddUpdStatus = (data, setWait) => (dispatch) => {
 };
 // Excluir
 export const helpdeskDelStatus = (data, setWait) => (dispatch) => {
-  const formData = new FormData();
-  formData.append("dados", JSON.stringify(data));
   //  Abrir um novo ticket
   fetchRedux(
     ROTAS[3],
     "DELETE",
-    formData,
+    data,
     (resposta) => {
       toast.dark(resposta.sucesso, {
         type: "success",
@@ -362,12 +354,10 @@ export const helpdeskDelStatus = (data, setWait) => (dispatch) => {
 };
 // Atualizar a lista dos status PARA
 export const helpdeskUpdFromToStatus = (data, setWait) => (dispatch) => {
-  const formData = new FormData();
-  formData.append("dados", JSON.stringify(data));
   fetchRedux(
     ROTAS[3],
     "PATCH",
-    formData,
+    data,
     (resposta) => {
       toast.dark(resposta.sucesso, {
         type: "success",
@@ -386,12 +376,10 @@ export const helpdeskUpdFromToStatus = (data, setWait) => (dispatch) => {
 
 // Atualizar a lista dos emails
 export const helpdeskUpdInvolved = (data, setWait) => (dispatch) => {
-  const formData = new FormData();
-  formData.append("dados", JSON.stringify(data));
   fetchRedux(
     ROTAS[4],
     "PUT",
-    formData,
+    data,
     (resposta) => {
       // toast.dark(resposta.sucesso, {
       //   type: "success",

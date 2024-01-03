@@ -1113,6 +1113,10 @@ class HelpdeskAuxiliar:
         if not HelpdeskAuxiliar.is_subject_exists(id_subject):
             return True
         
+        tkt_list = Ticket.query.filter(Ticket.idassunto == id_subject).all()
+        if len(tkt_list) > 0:
+            raise ValueError('Não pode excluir este assunto pois ele já esta sendo utilizado')
+
         ticket_subject: TicketAssunto = TicketAssunto.query.filter(TicketAssunto.id == id_subject).first()
         try:
             db.session.delete(ticket_subject)
@@ -1194,16 +1198,21 @@ class HelpdeskAuxiliar:
         '''Remove a lista de status para que o status enviado pode seguir '''
         if not HelpdeskAuxiliar.is_status_exists(id_status):
             raise ValueError('O status informado não existe')
-        tkt: TicketStatusDePara = TicketStatusDePara.query.filter(TicketStatusDePara.status_de == id_status)
-        try:
-            db.session.delete(tkt)
-            db.session.commit()
-        except Exception as err:
-            raise err 
+        tkt_list: TicketStatusDePara = TicketStatusDePara.query.filter(TicketStatusDePara.status_de == id_status).all()
+        for tkt in tkt_list:
+            try:
+                db.session.delete(tkt)
+                db.session.commit()
+            except Exception as err:
+                raise err 
 
     @staticmethod
     def del_status(id_status: int):
         ''' Realiza a exclusão do status pelo ID informado'''
+        tkt_ls = Ticket.query.filter(Ticket.idstatus == id_status).all()
+        if len(tkt_ls) > 0:
+            raise ValueError("Não é possível excluir este status pois já existem helpdesks nele.")
+
         HelpdeskAuxiliar.del_status_to(id_status)
 
         sts = TicketStatus.query.filter(TicketStatus.id == id_status).first()

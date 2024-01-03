@@ -1,4 +1,4 @@
-
+from functools import wraps
 from models import User 
 from flask_login import current_user
 from flask_smorest import abort
@@ -6,6 +6,7 @@ from flask_smorest import abort
 def is_agent(func):
     ''' Verifica se o usuario logado é o agente responsavel'''
 
+    @wraps(func)
     def f(*args, **kwargs):
 
         user: User = current_user

@@ -47,7 +47,7 @@ class HelpdeskAssuntoSchema(Schema):
     descricao = fields.Str()
     situacao = fields.Str()
 
-class HelpdeskAssuntoPostSchema(HelpdeskAssuntoNomePrazoSchema, SuccessSchema):
+class HelpdeskAssuntoPostSchema(HelpdeskAssuntoNomePrazoSchema, HelpdeskAssuntoSituacaoSchema, SuccessSchema):
     data = fields.Nested(HelpdeskAssuntoSchema)
 
 class HelpdeskAssuntoPutSchema(HelpdeskAssuntoIdAssuntoSchema, 

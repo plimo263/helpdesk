@@ -12,7 +12,7 @@ from routes import (
 )
 from routes import (
     login_api, profile_api, sector_api, manager_user_api, config_helpdesk_api, 
-    helpdesk_api, helpdesk_assunto_api
+    helpdesk_api, helpdesk_assunto_api, helpdesk_status_api
 )
 
 def register_api(api: CustomApi) -> CustomApi:
@@ -24,6 +24,7 @@ def register_api(api: CustomApi) -> CustomApi:
     api.register_blueprint(config_helpdesk_api)
     api.register_blueprint(helpdesk_api)
     api.register_blueprint(helpdesk_assunto_api)
+    api.register_blueprint(helpdesk_status_api)
 
     return api
 

@@ -1194,9 +1194,9 @@ class HelpdeskAuxiliar:
         '''Remove a lista de status para que o status enviado pode seguir '''
         if not HelpdeskAuxiliar.is_status_exists(id_status):
             raise ValueError('O status informado não existe')
-        
+        tkt: TicketStatusDePara = TicketStatusDePara.query.filter(TicketStatusDePara.status_de == id_status)
         try:
-            TicketStatusDePara.query.filter(TicketStatusDePara.status_de == id_status).delete()
+            db.session.delete(tkt)
             db.session.commit()
         except Exception as err:
             raise err 

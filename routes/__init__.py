@@ -10,3 +10,4 @@ from .config_helpdesk.config_helpdesk_api import blp as config_helpdesk_api
 from .helpdesk.helpdesk_api import blp as helpdesk_api
 from .helpdesk.helpdesk_view import blp as helpdesk_view
 from .helpdesk.helpdesk_assuntos_api import blp as helpdesk_assunto_api
+from .helpdesk.helpdesk_status_api import blp as helpdesk_status_api

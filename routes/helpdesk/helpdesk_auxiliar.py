@@ -16,7 +16,7 @@ from extensions import db, DIR_WEB_VARIABLES
 from models import User
 from models.user import UserDB 
 from models.config.config_db import ConfigDB
-from models.sender.sender import Sender
+from utils.sender import SenderEmail
 from utils.files import Files
 
 POR_PAGINA = 10
@@ -1030,8 +1030,8 @@ class HelpdeskAuxiliar:
             status=status_ticket
         )
 
-        sender = Sender(list_emails, corpo_email, title_message)
-        sender.send_email_pdf()
+        sender = SenderEmail(list_emails, title_message, corpo_email)
+        sender.send()
 
     @staticmethod
     def obter_descricao_formatada(descri) -> list:

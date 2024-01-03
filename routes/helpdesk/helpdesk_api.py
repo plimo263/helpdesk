@@ -73,10 +73,10 @@ class HelpdeskView(MethodView):
         #
         lista_emails = { 
             reg.email for reg in  UserDB().get_all_with_user() 
-            if not reg.email is None and len(reg.email) > 0 and reg.id in copia_chamado
+            if not reg.email is None and len(reg.email) > 0 and (reg.id in copia_chamado or reg.id == id_usuario)
         }
 
-        list_of_copys = [ id_usuario_copia for id_usuario_copia in copia_chamado ]
+        list_of_copys = list(set([id_usuario] + [ id_usuario_copia for id_usuario_copia in copia_chamado ]))
 
         HelpdeskAuxiliar.add_copy_to_helpdesk(helpdesk['id'], list_of_copys)
 
@@ -92,13 +92,19 @@ class HelpdeskView(MethodView):
 
         agentes = HelpdeskAuxiliar.obter_agentes()
 
-        lista_emails = list( lista_emails ) + list( { reg['email'] for reg in agentes if not reg['email'] is None and len(reg['email']) > 0 } )
+        lista_emails = list( 
+            set(list( lista_emails ) + list({ 
+                reg['email'] for reg in agentes 
+                if not reg['email'] is None and len(reg['email']) > 0 
+            }))
+        )
 
         # Enviar email
         titulo_mensagem = 'Ticket #{} [{}]'.format( helpdesk['id'], titulo )
 
         msg = 'Chamado inserido com sucesso.'
         if len(lista_emails) > 0 and enviar_email:
+            print(lista_emails)
             try:
                 HelpdeskAuxiliar.enviar_email_helpdeskV2(
                     lista_emails, titulo_mensagem, helpdesk['id']

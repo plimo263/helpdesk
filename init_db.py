@@ -135,7 +135,7 @@ def create_admin():
     ''' Cria o primeiro usuário (admin)'''
     user: User = User(
         nome = 'Admin',
-        email='admin@helpdesk.com',
+        email='admin@plimo263help.com',
         senha = generate_password_hash('admin', 'pbkdf2'),
         is_agent = 'S',
         ativo = 'S',

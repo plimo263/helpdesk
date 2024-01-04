@@ -56,11 +56,11 @@ export default async function fetchRedux(
     onSuccess(resp.data);
   } catch (error) {
     if (error?.response?.data?.message) {
-      ToastErro(error?.response?.data?.message);
+      onError(error?.response?.data?.message);
     } else if (error?.message) {
-      ToastErro(error?.message);
+      onError(error?.message);
     } else {
-      ToastErro(String(error));
+      onError(String(error));
     }
     return false;
   } finally {

@@ -415,7 +415,7 @@ const Interacoes = ({
         justifyContent="center"
         direction="row-reverse"
       >
-        {permitidoInteragir && !bloqueado && !exibirIncremento && (
+        {permitidoInteragir && !exibirIncremento && (
           <Button
             fullWidth={isMobile}
             variant="contained"

@@ -13,6 +13,7 @@ from models import User
 from routes.helpdesk.helpdesk_auxiliar import HelpdeskAuxiliar
 from routes.helpdesk.helpdesk_query import HelpdeskQueryData, HelpdeskQueryDataPage, HelpdeskQueryDataStatistics, HelpdeskQueryDataTicket
 from routes.utils.bucket_route import BucketAuxiliar
+from schemas.helpdesk.helpdesk_envolvidos_schema import HelpdeskEnvolvidosSchema
 from schemas.helpdesk.helpdesk_schema import HelpdeskFiltroSchema, HelpdeskGetSchema, HelpdeskPatchSchema, HelpdeskPostSchema, HelpdeskPutSchema, HelpdeskTicketSchema
 
 
@@ -244,6 +245,7 @@ class HelpdeskView(MethodView):
 @blp.route('/helpdesk_filtro')
 class HelpdeskFiltroView(MethodView):
 
+    @login_required
     @blp.arguments(HelpdeskFiltroSchema, location='query')
     @blp.response(200, HelpdeskTicketSchema(many=True))
     def get(self, item_data):
@@ -284,3 +286,45 @@ class HelpdeskFiltroView(MethodView):
             )
         
         return HelpdeskAuxiliar.get_helpdesk_list(tuple(SQL_PARAM))
+
+@blp.route('/helpdesk_envolvidos')
+class HelpdeskEnvolvidosView(MethodView):
+
+    @login_required
+    @blp.arguments(HelpdeskEnvolvidosSchema)
+    @blp.response(200, HelpdeskEnvolvidosSchema)
+    def put(self, item_data):
+        ''' Atualiza os utilizadores envolvidos no envio ticket '''
+        id_ticket, copy_helpdesk = itemgetter(
+            'id_ticket', 'copia_chamado'
+        )(item_data)
+
+        user: User = current_user
+
+        ID = user.id
+
+        _ticket_registro = HelpdeskAuxiliar.get_helpdesk_list( 
+            ( Ticket.id == id_ticket, ) 
+        )
+
+        is_agent_helpdesk = HelpdeskAuxiliar.is_agent(ID)
+        
+        if not is_agent_helpdesk:
+            if _ticket_registro[0]['id_usuario'] != ID:
+                return abort(
+                    400, 
+                    message='O ticket mencionado não pertence ao seu usuário não pode interagir'
+                )
+
+        HelpdeskAuxiliar.add_copy_to_helpdesk(
+            id_ticket, list(set(copy_helpdesk))
+        )
+
+        return {
+            'sucesso': 'Usuários em cópia atualizados com sucesso',
+            'data': HelpdeskAuxiliar.get_copy_helpdesk(id_ticket)
+        }
+
+
+
+

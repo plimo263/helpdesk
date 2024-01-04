@@ -234,6 +234,14 @@ class HelpdeskAuxiliar:
             >>> Helpdesk.add_copy_to_helpdesk(1, [2] )
         
         '''
+        # Limpando a lista de copias existentes.
+        for row in TicketCopia.query.filter(TicketCopia.idticket == id_ticket).all():
+            try:
+                db.session.delete(row)
+                db.session.commit()
+            except Exception as err:
+                db.session.rollback()
+                raise err
 
         for id_user_copy in id_user_copy_list:
             tkt_copy = TicketCopia(
@@ -925,7 +933,10 @@ class HelpdeskAuxiliar:
             TicketCopia.idticket == id_ticket
         ).all()
 
-        user_x_avatar = { reg.id: reg.avatar for reg in UserDB().get_all_with_user() }
+        user_x_avatar = { 
+            reg.id: reg.avatar 
+            for reg in UserDB().get_all_with_user() 
+        }
 
         return [{
                 'id_usuario': row.id_usuario,

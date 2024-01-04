@@ -1,11 +1,13 @@
+import logging
 from http import HTTPStatus
 from flask import Flask, redirect, request
 from flask_smorest import abort
 from config_app import Config, ConfigDebug
-from extensions import URI_DATABASE, APP_DEBUG, SECRET_KEY
-from extensions import db, login_manager, mail, dir_base
+from extensions import APP_DEBUG
+from extensions import db, login_manager, mail, dir_base, scheduler
 from schemas.custom_schema import CustomApi
 from models import User
+import crontab.schedulers
 # Rotas
 from routes import (
     login_view, bucket_view, sector_view, manager_user_view, helpdesk_view,
@@ -15,7 +17,7 @@ from routes import (
     helpdesk_api, helpdesk_assunto_api, helpdesk_status_api, 
     helpdesk_gestao_api
 )
-from utils.sender import AttachEmail, SenderEmail
+
 
 def register_api(api: CustomApi) -> CustomApi:
     '''Preenche registra as rotas de api no sistema e retorna o objeto'''
@@ -73,11 +75,17 @@ def create_app():
 
     login_manager.init_app(app)
 
+    scheduler.init_app(app)
+    logging.getLogger("apscheduler").setLevel(logging.INFO)
+    scheduler.start()
+
+
     login_manager_config(login_manager)
 
     api = CustomApi(app)
 
     api = register_api(api)
     app = register_app(app)
+
 
     return app

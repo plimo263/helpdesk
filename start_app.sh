@@ -19,9 +19,9 @@
 
 case "$1" in 
     debug)
-        gunicorn -t 240 -w 4 -b 0.0.0.0:5000 --reload --access-logfile - "app:app";;
+        gunicorn -t 240 -w 1 -b 0.0.0.0:5000 --reload --access-logfile - "app:app";;
     deploy)
-        gunicorn -t 480 -w 4 -b 0.0.0.0:5000 --access-logfile - "app:app";;
+        gunicorn -t 480 -w 1 -b 0.0.0.0:5000 --access-logfile - "app:app";;
     *)
         echo "Digite debug ou deploy";;
 esac

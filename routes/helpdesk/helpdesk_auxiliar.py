@@ -12,7 +12,7 @@ from db import (
     TicketStatusDePara
 )
 from db import User as UserTable
-from extensions import URL_PUBLIC, db, DIR_WEB_VARIABLES
+from extensions import URL_PUBLIC, db, DIR_WEB_VARIABLES, URI_DATABASE
 from models import User
 from models.user import UserDB 
 from models.config.config_db import ConfigDB
@@ -22,7 +22,37 @@ from utils.files import Files
 POR_PAGINA = 10
 DIAS_AUTO_FECHAMENTO = 'DAYS_OF_WAIT_USER'
 
+STATUS_AGUARDANDO = 6
+STATUS_RESOLVIDO = 3
+
+is_sqlite = True if URI_DATABASE.find('sqlite') != -1 else False
+
 CAMINHO_ACESSAR_ANEXO_HELPDESK = '/static/helpdesk'
+
+QUERY_TICKET_OPEN_MYSQL = '''
+SELECT t.id FROM ticket t 
+WHERE t.idstatus = {} AND DATE_ADD( 
+    DATE_FORMAT(
+        (SELECT MAX(dtinteracao) from ticket_interacao where idticket = t.id), 
+        '%Y-%m-%d'
+    ), INTERVAL {} DAY 
+) <= DATE_FORMAT(NOW(), '%Y-%m-%d')
+'''
+
+QUERY_TICKET_OPEN_SQLITE = '''
+SELECT t.id FROM ticket t 
+WHERE t.idstatus = {} AND strftime(
+    '%Y-%m-%d', 
+    datetime(
+        strftime(
+            '%Y-%m-%d', 
+            ( select max(dtinteracao) FROM ticket_interacao 
+                WHERE idticket = t.id
+            )
+        ),
+        '+{} day')
+    ) <= strftime('%Y-%m-%d', datetime('now')) 
+'''
 
 class HelpdeskAuxiliar:
 
@@ -569,79 +599,66 @@ class HelpdeskAuxiliar:
     @staticmethod
     def auto_fechamento_ticket():
         ''' Realiza o auto-fechamento dos tickets que estão aguardando usuario
-        [TODO]
         '''
-        STATUS_AGUARDANDO = 6
-        
         # Pega a o valor da variavel HELPDESK_AUTO_FECHAR que corresponde aos dias 
         # que o ticket pode ficar aberto
         days_of_wait_user = ConfigDB().get(name=DIAS_AUTO_FECHAMENTO)
-        DIAS_EM_ABERTO = 10 if days_of_wait_user is None else int(days_of_wait_user.value)
+        DIAS_EM_ABERTO = 10 if days_of_wait_user is None else int(days_of_wait_user.valor)
 
-        # # Recupera todos os tickets com status aguardando usuario
-        # SQL = querys.HELPDESK_TICKETS.format(
-        #     """
-        #     WHERE t.idstatus = {} AND DATE_ADD( 
-        #             DATE_FORMAT(
-        #                 (SELECT MAX(dtinteracao) from ticket_interacao where idticket = t.id), 
-        #                 '%Y-%m-%d'
-        #             ), INTERVAL {} DAY 
-        #         ) <= DATE_FORMAT(NOW(), '%Y-%m-%d')
-        #     """.format(
-        #         STATUS_AGUARDANDO, 
-        #         DIAS_EM_ABERTO
-        #     )
-        # )
-        # c = modelo.Consulta(SQL, *modelo.param_mysql)
-        # if len(c) == 0:
-        #     return False
-        # # Frase que irá seguir no corpo do email marcando
-        # # Como resolvido
-        # FRASE_TICKET_FECHADO = [
-        #     {
-        #         "type": "paragraph", 
-        #         "children": [
-        #             {
-        #                 "text": "Ticket encerrado por falta de interação há {} dias".format(
-        #                     DIAS_EM_ABERTO
-        #                 )
-        #             }
-        #         ]
-        #     }
-        # ]
-        # #
-        # for item in c.getRegistros():
-        #     _ticket_id = item[0]
-        #     Helpdesk.update_status(_ticket_id, STATUS_RESOLVIDO)
+        SQL = QUERY_TICKET_OPEN_SQLITE  if is_sqlite else QUERY_TICKET_OPEN_MYSQL
 
-        #     # Aqui recupera os detalhes do ticket obter_detalhes_ticket 
-        #     # para pegar as informacoes dos envolvidos
-        #     _ticket_detalhes = Helpdesk.obter_detalhes_ticket(_ticket_id)
+        SQL = SQL.format(STATUS_AGUARDANDO, DIAS_EM_ABERTO)
 
-        #     # E insere o incremento na tabela de interacao sobre este status
-        #     # Insere um incremento
-        #     Helpdesk.add_interaction(
-        #         id_ticket=_ticket_id,
-        #         id_user=_ticket_detalhes['id_usuario'],
-        #         description=json.dumps(FRASE_TICKET_FECHADO, ensure_ascii=False),
-        #         id_status=STATUS_AGUARDANDO,
-        #         id_status_to=STATUS_RESOLVIDO,
-        #     )
+        rows = db.session.execute(text(SQL)).all()
+
+        if len(rows) == 0:
+            return False
+        
+        FRASE_TICKET_FECHADO = [
+            {
+                "type": "paragraph", 
+                "children": [
+                    {
+                        "text": "Ticket encerrado por falta de interação há {} dias".format(
+                            DIAS_EM_ABERTO
+                        )
+                    }
+                ]
+            }
+        ]
+        #
+        for item in rows:
+            _ticket_id = item.id
+            HelpdeskAuxiliar.update_status(_ticket_id, STATUS_RESOLVIDO)
+
+            # Aqui recupera os detalhes do ticket obter_detalhes_ticket 
+            # para pegar as informacoes dos envolvidos
+            _ticket_detalhes = HelpdeskAuxiliar.obter_detalhes_ticket(_ticket_id)
+
+            # E insere o incremento na tabela de interacao sobre este status
+            # Insere um incremento
+            HelpdeskAuxiliar.add_interaction(
+                id_ticket=_ticket_id,
+                id_user=_ticket_detalhes['id_usuario'],
+                description=json.dumps(FRASE_TICKET_FECHADO, ensure_ascii=False),
+                id_status=STATUS_AGUARDANDO,
+                id_status_to=STATUS_RESOLVIDO,
+            )
             
-        #     titulo = _ticket_detalhes['titulo']
-        #     # Titulo para o email 
-        #     titulo_mensagem = 'Ticket #{} [{}]'.format(_ticket_id, titulo)
+            titulo = _ticket_detalhes['titulo']
+            # Titulo para o email 
+            titulo_mensagem = 'Ticket #{} [{}]'.format(_ticket_id, titulo)
             
-        #     # Recupera os emails dos envolvidos
-        #     _lista_emails = [
-        #         reg['email']
-        #         for reg in _ticket_detalhes['envolvidos'] 
-        #         if not reg['email'] is None and len(reg['email']) > 0
-        #     ]
-        #     # Envia os emails notificando todos os envolvidos
-        #     Helpdesk.enviar_email_helpdeskV2(
-        #         _lista_emails, titulo_mensagem, _ticket_id
-        #      )
+            # Recupera os emails dos envolvidos
+            _lista_emails = [
+                reg['email']
+                for reg in _ticket_detalhes['envolvidos'] 
+                if not reg['email'] is None and len(reg['email']) > 0
+            ]
+            # Envia os emails notificando todos os envolvidos
+            HelpdeskAuxiliar.enviar_email_helpdeskV2(
+                _lista_emails, titulo_mensagem, _ticket_id
+             )
 
     @staticmethod
     def is_late_ticket(status_ticket: str, date_limit: datetime) -> bool:
@@ -949,7 +966,6 @@ class HelpdeskAuxiliar:
     @staticmethod
     def obter_detalhes_ticket(ticket_id: int) -> dict:
         ''' Recebe o ticket ID e retorna um dicionario'''
-        STATUS_RESOLVIDO = 3
 
         filter = (Ticket.id == ticket_id,)
 
@@ -960,6 +976,7 @@ class HelpdeskAuxiliar:
         user_x_avatar = { reg.id: reg.avatar for reg in UserDB().get_all_with_user() }
 
         row = rows[0]
+        print(row)
         obj = {
             'id': row.id,
             'id_usuario': row.id_usuario,
@@ -978,7 +995,7 @@ class HelpdeskAuxiliar:
             'titulo': row.titulo,
             'autorizado_interagir': row.autorizado_interagir,
             'id_status': row.id_status,
-            'bloqueado': row.id_status == STATUS_RESOLVIDO and row.qtd_resolvido > 1,
+            'bloqueado': row.id_status == STATUS_RESOLVIDO,
             'historico': [],
             'envolvidos': [],
         }

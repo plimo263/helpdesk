@@ -177,12 +177,13 @@ class HelpdeskAuxiliar:
               'is_agente': False
             }
         '''
+        date_now = datetime.now()
 
         if is_first:
             status_actualy = [ item for item in HelpdeskAuxiliar.get_status() if item['id'] == id_status ]
             ticket_interaction: TicketInteracao = TicketInteracao(
                 idticket = id_ticket,
-                dtinteracao = func.now(),
+                dtinteracao = date_now,
                 descricao = description,
                 id_usuario = id_user,
                 de_interacao = None,
@@ -193,7 +194,7 @@ class HelpdeskAuxiliar:
             status_name_to = [ item for item in HelpdeskAuxiliar.get_status() if item['id'] == id_status_to ][0]['descricao']
             ticket_interaction: TicketInteracao = TicketInteracao(
                 idticket = id_ticket,
-                dtinteracao = func.now(),
+                dtinteracao = date_now,
                 descricao = description,
                 id_usuario = id_user,
                 de_interacao = status_name_of,
@@ -246,7 +247,7 @@ class HelpdeskAuxiliar:
         tkt: Ticket = Ticket.query.filter(Ticket.id == id_ticket).first()
         if not tkt:
             raise ValueError('O ticket informado não existe')
-        tkt.dtfechamento = func.now()
+        tkt.dtfechamento = datetime.now()
 
         try:
             db.session.add(tkt)
@@ -976,7 +977,6 @@ class HelpdeskAuxiliar:
         user_x_avatar = { reg.id: reg.avatar for reg in UserDB().get_all_with_user() }
 
         row = rows[0]
-        print(row)
         obj = {
             'id': row.id,
             'id_usuario': row.id_usuario,
@@ -1040,11 +1040,12 @@ class HelpdeskAuxiliar:
 
         corpo_interacao = ''
         for item in dados['historico']:
+            dt_atual = item['data_interacao'].split('.')[0]
             corpo_interacao += render_template(
                 'helpdesk/template_interacao.tpl', 
                 enviado_por = 'agente' if item['is_agente'] else 'solicitante',
                 nome=item['nome'],
-                data_interacao=datetime.strptime(item['data_interacao'], '%Y-%m-%d %H:%M:%S').strftime('%d/%m/%Y %H:%M'),
+                data_interacao=datetime.strptime(dt_atual, '%Y-%m-%d %H:%M:%S').strftime('%d/%m/%Y %H:%M'),
                 cor_status= HelpdeskAuxiliar.get_status(item['para'])[0]['cor'],
                 nome_status = item['para'],
                 corpo_mensagem= visao_html.body_format(item['descricao'])

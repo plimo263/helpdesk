@@ -72,7 +72,6 @@ class ManagerUserView(MethodView):
         except IntegrityError as err:
             abort(400, message='Já existe um usuário registrado com este email')
         except Exception as err:
-            print(err)
             abort(400, message='Erro ao tentar atualizar o usuário.')
 
         update_user = [ user_to_dict(user) for user in UserDB().get_all_rows() if user.id == update_user.id ][0]

@@ -33,7 +33,6 @@ class HeldeskAssuntoView(MethodView):
         except IntegrityError:
             return abort(400, message='Ja existe um assunto com este nome')
         except Exception as err:
-            print(err)
             return abort(400, message='Erro ao tentar criar o assunto. Tentar novamente')
 
     @is_agent

@@ -65,7 +65,6 @@ class TestConfigData(unittest.TestCase):
     
     def test_e_config_exists(self):
         global ID_CONFIG
-        print(ID_CONFIG)
 
         with app.app_context():
             is_exists = ConfigDB().config_exists(id=ID_CONFIG)

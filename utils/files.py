@@ -111,7 +111,6 @@ class Files:
             return True
         except (AttributeError, KeyError, IndexError):
             # cases: image don't have getexif
-            print("ERRO FUNCAO DE ROTACIONAR IMAGEM")
             return False
     
     @staticmethod

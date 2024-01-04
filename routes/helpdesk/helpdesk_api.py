@@ -105,7 +105,6 @@ class HelpdeskView(MethodView):
 
         msg = 'Chamado inserido com sucesso.'
         if len(lista_emails) > 0 and enviar_email:
-            print(lista_emails)
             try:
                 HelpdeskAuxiliar.enviar_email_helpdeskV2(
                     lista_emails, titulo_mensagem, helpdesk['id']
@@ -156,14 +155,15 @@ class HelpdeskView(MethodView):
 
         is_agent_helpdesk = HelpdeskAuxiliar.is_agent(user.id)
 
-        if not is_agent_helpdesk:
-            # A (Agente), S (Solicitante)
-            is_interact = [ 
-                item for item in  HelpdeskAuxiliar.get_status() 
-                if item['id'] == idstatus_de and item['autorizado_interagir'] == 'S'
-            ]
-            if len(is_interact) == 0:
-                return abort(400, message='Você não esta autorizado a interagir neste ticket no status atual dele')
+        if idstatus_de != idstatus_para:
+            if not is_agent_helpdesk:
+                # A (Agente), S (Solicitante)
+                is_interact = [ 
+                    item for item in  HelpdeskAuxiliar.get_status() 
+                    if item['id'] == idstatus_de and item['autorizado_interagir'] == 'S'
+                ]
+                if len(is_interact) == 0:
+                    return abort(400, message='Você não esta autorizado a interagir neste ticket no status atual dele')
         
         _ticket_registro = HelpdeskAuxiliar.get_helpdesk_list((Ticket.id == id_ticket,))
 
@@ -232,9 +232,11 @@ class HelpdeskView(MethodView):
         #
         msg = 'Chamado atualizado com sucesso.'
         if len(lista_emails) > 0 and enviar_email:
+            print(lista_emails)
             try:
                 HelpdeskAuxiliar.enviar_email_helpdeskV2(lista_emails, titulo_mensagem, id_ticket)
             except Exception as err:
+                print(err)
                 msg += 'Mas teve algum problema no envio do email.'
 
         return {

@@ -114,7 +114,6 @@ class HelpdeskGestaoAuxiliar:
         .group_by(text('name')).order_by(desc(text('total'))).all()
 
         for row in rows:
-            print(row)
             subject_dict[int(row.name)] = row.total
         
         return [ [ DateFormat().map_month(k), subject_dict[k] ] for k in subject_dict ]

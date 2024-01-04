@@ -48,7 +48,6 @@ class BucketAuxiliar:
         try:
             shutil.move(path_full_filename, path_bucket)
         except FileNotFoundError:
-            print('Arquivo não pode ser devolvido para o bucket')
             pass
     
     def file_exists_in_bucket(path_file: str) -> bool:

@@ -108,5 +108,4 @@ class HelpdeskStatusView(MethodView):
         except IntegrityError as err:
             return abort(400, message='Não foi possível excluir o status informado. Ele pode estar sendo utilizado em algum chamado ou ter vinculos com outros status.')
         except Exception as err:
-            print(err)
             return abort(400, message='Não foi possível excluir o status')

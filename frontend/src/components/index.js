@@ -14,6 +14,8 @@ import ContainerAdaptavel from "./container-adaptavel";
 import DrawerDialog from "./drawer-dialog";
 import InputBusca from "./input-busca";
 import Pesquisando from "./pesquisando";
+import FormSearchAdvanced from "./form-search-advanced";
+import FiltroPorPeriodo from "./filtro-por-periodo";
 
 import {
   H6,
@@ -57,4 +59,6 @@ export {
   ContainerAdaptavel,
   InputBusca,
   Pesquisando,
+  FormSearchAdvanced,
+  FiltroPorPeriodo,
 };

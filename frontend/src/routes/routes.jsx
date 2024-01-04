@@ -9,6 +9,7 @@ import ConfigHelpdesk from "./config_helpdesk/config_helpdesk";
 import { HelpdeskDetalhes } from "./helpdesk";
 import HelpdeskAssunto from "./helpdesk/helpdesk-assunto";
 import HelpdeskStatus from "./helpdesk/helpdesk-status";
+import GestaoHelpdesk from "./gestao-helpdesk/gestao-helpdesk";
 
 // Todas as rotas do aplicativo
 export const ROTAS = [
@@ -20,6 +21,7 @@ export const ROTAS = [
   [HelpdeskDetalhes.rota, HelpdeskDetalhes],
   [HelpdeskAssunto.rota, HelpdeskAssunto],
   [HelpdeskStatus.rota, HelpdeskStatus],
+  [GestaoHelpdesk.rota, GestaoHelpdesk],
 ];
 
 export default function Routes() {

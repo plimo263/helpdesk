@@ -8,9 +8,11 @@ import Helpdesk from "../routes/helpdesk/helpdesk";
 import ManagerUser from "../routes/manager_user/manager-user";
 import Sector from "../routes/sector/sector";
 import ConfigHelpdesk from "../routes/config_helpdesk/config_helpdesk";
+import GestaoHelpdesk from "../routes/gestao-helpdesk/gestao-helpdesk";
 
 const STR = {
   logout: "Sair",
+  manager: "Gestão",
   home: "Helpdesk",
   managerSectors: "Setores",
   managerUsers: "Usuários",
@@ -18,6 +20,7 @@ const STR = {
 };
 
 const ICONS = {
+  manager: "Dashboard",
   logout: "Logout",
   home: "Construction",
   managerSectors: "AccountTree",
@@ -66,6 +69,12 @@ const MenuUser = () => {
   ];
 
   if (user?.agent) {
+    options.push({
+      name: STR.manager,
+      icon: ICONS.manager,
+      route: GestaoHelpdesk.rota,
+      onClick: () => onSetRouter(GestaoHelpdesk.rota),
+    });
     options.push({
       name: STR.managerUsers,
       icon: ICONS.managerUsers,

@@ -9,6 +9,16 @@ blp = Blueprint('helpdesk_view', __name__)
 def helpdesk_view_page():
     return render_template('template_react.html')
 
+@blp.route('/helpdesk_detalhes', methods = ['GET'])
+@login_required
+def helpdesk_detalhes():
+    return render_template('template_react.html')
+
+@blp.route('/gestao_helpdesk_view', methods = ['GET'])
+@login_required
+def gestao_helpdesk():
+    return render_template('template_react.html')
+
 @blp.route('/helpdesk_assunto_page', methods = ['GET'])
 @is_agent
 def helpdesk_assunto_page():

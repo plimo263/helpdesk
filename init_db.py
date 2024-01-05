@@ -133,10 +133,12 @@ def init_subject():
 
 def create_admin():
     ''' Cria o primeiro usuário (admin)'''
+    email = 'admin@plimo263help.com'
+    passwd = 'admin'
     user: User = User(
         nome = 'Admin',
-        email='admin@plimo263help.com',
-        senha = generate_password_hash('admin', 'pbkdf2'),
+        email= email,
+        senha = generate_password_hash(passwd, 'pbkdf2'),
         is_agent = 'S',
         ativo = 'S',
         id_setor = 1
@@ -145,6 +147,10 @@ def create_admin():
     try:
       db.session.add(user)
       db.session.commit()
+      print('-' * 60)
+      print(f'usuario:{email} ')
+      print(f'senha: {passwd}')
+      print('-' * 50)
     except:
        db.session.rollback()
 

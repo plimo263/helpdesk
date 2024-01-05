@@ -2,6 +2,7 @@ apispec==6.3.1
 APScheduler==3.10.4
 blinker==1.7.0
 click==8.1.7
+colorama==0.4.6
 Flask==3.0.0
 Flask-APScheduler==1.13.1
 Flask-Login==0.6.3
@@ -16,11 +17,14 @@ MarkupSafe==2.1.3
 marshmallow==3.20.1
 packaging==23.2
 pillow==10.2.0
+psutil==5.9.7
 python-dateutil==2.8.2
 python-dotenv==1.0.0
 pytz==2023.3.post1
 six==1.16.0
 SQLAlchemy==2.0.25
+taskipy==1.12.2
+tomli==2.0.1
 typing_extensions==4.9.0
 tzlocal==5.2
 webargs==8.3.0

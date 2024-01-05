@@ -9,6 +9,7 @@ import {
   ListItemText,
   Paper,
   Stack,
+  useTheme,
 } from "@mui/material";
 import React, { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,10 +19,12 @@ import {
   seletorSectorModal,
 } from "./sector-selector";
 import DrawerDialog from "../../components/drawer-dialog";
-import { Body1, H6, Icone } from "../../components";
+import { Body1, FabCustom, H6, Icone } from "../../components";
 import { green, red } from "@mui/material/colors";
 import { sectorCloseModal, sectorInit, sectorSetModal } from "./sector-actions";
 import SectorModal from "./sector-modal";
+import SectorAddUpd from "./sector-add-upd";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
 const STR = {
   title: "Setores",
@@ -67,8 +70,8 @@ function Sector() {
   const modal = useSelector(seletorSectorModal);
   //
   useEffect(() => {
-    dispatch(sectorInit());
-  }, [dispatch]);
+    if (!sector) dispatch(sectorInit());
+  }, [sector, dispatch]);
   //
   const fnCloseModal = useCallback(() => {
     dispatch(sectorCloseModal());
@@ -93,26 +96,39 @@ function Sector() {
 }
 //
 const AddSector = () => {
+  const isMobile = useTheme()?.isMobile;
+
+  const history = useHistory();
+
   const dispatch = useDispatch();
+
   const onClick = useCallback(() => {
-    dispatch(
-      sectorSetModal({
-        type: SectorModal.modal.ADD,
-      })
-    );
-  }, [dispatch]);
+    if (isMobile) {
+      history.push(SectorAddUpd.rota);
+    } else {
+      dispatch(
+        sectorSetModal({
+          type: SectorModal.modal.ADD,
+        })
+      );
+    }
+  }, [history, isMobile, dispatch]);
 
   return (
     <Stack direction="row-reverse">
-      <Fab
-        onClick={onClick}
-        title={STR.titleBtn}
-        color="success"
-        variant="extended"
-      >
-        <Icone icone="Add" />
-        <Body1>{STR.labelBtn}</Body1>
-      </Fab>
+      {isMobile ? (
+        <FabCustom icon="Add" onClick={onClick} />
+      ) : (
+        <Fab
+          onClick={onClick}
+          title={STR.titleBtn}
+          color="success"
+          variant="extended"
+        >
+          <Icone icone="Add" />
+          <Body1>{STR.labelBtn}</Body1>
+        </Fab>
+      )}
     </Stack>
   );
 };
@@ -132,19 +148,27 @@ const SectorList = () => {
 };
 
 const SectorItem = ({ id, name, situation }) => {
+  const isMobile = useTheme()?.isMobile;
+
   const dispatch = useDispatch();
+
+  const history = useHistory();
   //
   const onClick = useCallback(
     (e) => {
       e.stopPropagation();
-      dispatch(
-        sectorSetModal({
-          type: SectorModal.modal.UPD,
-          data: { id, name, situation },
-        })
-      );
+      if (isMobile) {
+        history.push(SectorAddUpd.rota, { id, name, situation });
+      } else {
+        dispatch(
+          sectorSetModal({
+            type: SectorModal.modal.UPD,
+            data: { id, name, situation },
+          })
+        );
+      }
     },
-    [id, name, situation, dispatch]
+    [id, name, situation, dispatch, history, isMobile]
   );
   //
   const onDelete = useCallback(

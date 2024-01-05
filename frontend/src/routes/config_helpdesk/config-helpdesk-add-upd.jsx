@@ -2,9 +2,13 @@ import React, { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { configHelpdeskAddUpd } from "./config-helpdesk-actions";
 import * as yup from "yup";
-import { Container } from "@mui/material";
+import { Container, useTheme } from "@mui/material";
 import { EntradaForm, H6 } from "../../components";
 import { useToggle } from "react-use";
+import {
+  useHistory,
+  useLocation,
+} from "react-router-dom/cjs/react-router-dom.min";
 
 const STR = {
   titleAdd: "Nova variável do sistema",
@@ -24,29 +28,39 @@ const FIELDS_FORM = {
 };
 
 function ConfigHelpdeskAddUpd({ item }) {
+  const isMobile = useTheme()?.isMobile;
+
   const [wait, setWait] = useToggle();
+
+  const history = useHistory();
+
+  const variableFromMobile = useLocation()?.state;
+
+  const itemValue = variableFromMobile || item;
+
   const dispatch = useDispatch();
+
   const schema = [
     {
       type: "text",
       name: FIELDS_FORM.name,
       label: STR.labelName,
       placeholder: STR.labelName,
-      defaultValue: item?.name ? item.name : "",
+      defaultValue: itemValue?.name ? itemValue.name : "",
     },
     {
       type: "text",
       name: FIELDS_FORM.value,
       label: STR.labelValue,
       placeholder: STR.labelValue,
-      defaultValue: item?.value ? item.value : "",
+      defaultValue: itemValue?.value ? itemValue.value : "",
     },
     {
       type: "textarea",
       name: FIELDS_FORM.description,
       label: STR.labelDescription,
       placeholder: STR.labelDescription,
-      defaultValue: item?.description ? item.description : "",
+      defaultValue: itemValue?.description ? itemValue.description : "",
       minRows: 3,
       multiline: true,
     },
@@ -67,13 +81,18 @@ function ConfigHelpdeskAddUpd({ item }) {
         [FIELDS_FORM.value]: val[FIELDS_FORM.value],
         [FIELDS_FORM.description]: val[FIELDS_FORM.description],
       };
-      if (item?.id) {
-        obj.id = item.id;
+      if (itemValue?.id) {
+        obj.id = itemValue.id;
       }
 
-      dispatch(configHelpdeskAddUpd(obj, setWait));
+      let fn;
+      if (isMobile) {
+        fn = history.goBack;
+      }
+
+      dispatch(configHelpdeskAddUpd(obj, setWait, fn));
     },
-    [dispatch, item, setWait]
+    [dispatch, isMobile, itemValue, history, setWait]
   );
 
   return (
@@ -89,5 +108,7 @@ function ConfigHelpdeskAddUpd({ item }) {
     </Container>
   );
 }
+
+ConfigHelpdeskAddUpd.rota = "/config_helpdesk_add_upd";
 
 export default ConfigHelpdeskAddUpd;

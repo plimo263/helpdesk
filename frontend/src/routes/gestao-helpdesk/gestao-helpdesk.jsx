@@ -244,7 +244,7 @@ function GestaoHelpdesk() {
               fecharModal={() => dispatch({ type: ACTIONS.CLOSE_MODAL })}
             />
           )}
-          <Container maxWidth="md" sx={{ my: 1 }}>
+          <Container disableGutters maxWidth="md" sx={{ my: 1 }}>
             <Stack direction={{ xs: "column", md: "row" }} gap={1}>
               <Stack alignItems="flex-start">
                 <Body2>{STR.labelFilter}</Body2>
@@ -262,7 +262,6 @@ function GestaoHelpdesk() {
               ) : (
                 <Stack direction={{ xs: "column", md: "row" }} gap={1}>
                   <TotalOfTickets total={data?.total[0][1]} />
-                  {/* <TimeMediumOfResolution tempo_medio={data?.tempo_medio} /> */}
                 </Stack>
               )}
             </Stack>
@@ -435,6 +434,7 @@ const TotalOfTickets = ({ total }) => {
     background: green[200],
     display: "flex",
     alignItems: "center",
+    justifyContent: "center",
     flex: 1,
   };
   return (
@@ -449,33 +449,7 @@ const TotalOfTickets = ({ total }) => {
     </Paper>
   );
 };
-//
-// const TimeMediumOfResolution = ({ tempo_medio }) => {
-//   const totalTimeMedium = _.sumBy(tempo_medio, (val) => val[1]);
-//   const totalTickets = _.sumBy(tempo_medio, (val) => val[2]);
 
-//   const timeMedium = parseInt(totalTimeMedium / totalTickets);
-
-//   const sx = {
-//     p: 1,
-//     background: blue[100],
-//     display: "flex",
-//     alignItems: "center",
-//     flex: 1,
-//   };
-//   return (
-//     <Paper sx={sx}>
-//       <Stack>
-//         <Stack direction="row" spacing={1} alignItems="center">
-//           <Icone sx={{ fontSize: 56 }} icone="Schedule" />
-//           <H3>{convertMinsAndHours(timeMedium)}</H3>
-//         </Stack>
-//         <Caption align="center">{STR.timeMedium}</Caption>
-//       </Stack>
-//     </Paper>
-//   );
-// };
-//
 const ChartStatus = ({ status }) => {
   const data = formatValues(status);
 

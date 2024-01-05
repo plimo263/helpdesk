@@ -16,6 +16,7 @@ import InputBusca from "./input-busca";
 import Pesquisando from "./pesquisando";
 import FormSearchAdvanced from "./form-search-advanced";
 import FiltroPorPeriodo from "./filtro-por-periodo";
+import FabCustom from "./FabCustom";
 
 import {
   H6,
@@ -61,4 +62,5 @@ export {
   Pesquisando,
   FormSearchAdvanced,
   FiltroPorPeriodo,
+  FabCustom,
 };

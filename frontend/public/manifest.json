@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Aplicativo Helpdesk",
+  "name": "Aplicativo de controle de chamados",
   "icons": [
     {
       "src": "favicon.ico",

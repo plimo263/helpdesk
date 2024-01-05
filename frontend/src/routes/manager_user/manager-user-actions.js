@@ -38,13 +38,15 @@ export const managerUserCloseModal = () => ({
   type: MANAGER_USER_CLOSE_MODAL,
 });
 // Atualiza/deleta usuario do sistema
-export const managerUserAddUpd = (obj, setWait) => (dispatch) => {
+export const managerUserAddUpd = (obj, setWait, fnCallback) => (dispatch) => {
   fetchRedux(
     ROUTES[0],
     obj.id ? "PUT" : "POST",
     obj,
     (response) => {
       toast.dark(response.sucesso, { type: "success" });
+
+      if (fnCallback) fnCallback();
 
       dispatch({
         type: obj.id ? MANAGER_USER_PUT : MANAGER_USER_POST,

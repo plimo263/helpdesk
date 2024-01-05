@@ -6,10 +6,15 @@ import ManagerUser from "./manager_user/manager-user";
 import Sector from "./sector/sector";
 import { Box, Grow } from "@mui/material";
 import ConfigHelpdesk from "./config_helpdesk/config_helpdesk";
-import { HelpdeskDetalhes } from "./helpdesk";
+import { HelpDeskAdicionar, HelpdeskDetalhes } from "./helpdesk";
 import HelpdeskAssunto from "./helpdesk/helpdesk-assunto";
 import HelpdeskStatus from "./helpdesk/helpdesk-status";
 import GestaoHelpdesk from "./gestao-helpdesk/gestao-helpdesk";
+import HelpdeskAdicionar from "./helpdesk/helpdesk-adicionar";
+import HelpdeskFiltroAvancado from "./helpdesk/helpdesk-filtro-avancado";
+import ManagerUserAddUpd from "./manager_user/manager-user-add-upd";
+import SectorAddUpd from "./sector/sector-add-upd";
+import ConfigHelpdeskAddUpd from "./config_helpdesk/config-helpdesk-add-upd";
 
 // Todas as rotas do aplicativo
 export const ROTAS = [
@@ -18,10 +23,15 @@ export const ROTAS = [
   [ManagerUser.rota, ManagerUser],
   [Sector.rota, Sector],
   [ConfigHelpdesk.rota, ConfigHelpdesk],
+  [HelpdeskFiltroAvancado.rota, HelpdeskFiltroAvancado],
+  [HelpdeskAdicionar.rota, HelpDeskAdicionar],
   [HelpdeskDetalhes.rota, HelpdeskDetalhes],
   [HelpdeskAssunto.rota, HelpdeskAssunto],
   [HelpdeskStatus.rota, HelpdeskStatus],
   [GestaoHelpdesk.rota, GestaoHelpdesk],
+  [ManagerUserAddUpd.rota, ManagerUserAddUpd],
+  [SectorAddUpd.rota, SectorAddUpd],
+  [ConfigHelpdeskAddUpd.rota, ConfigHelpdeskAddUpd],
 ];
 
 export default function Routes() {

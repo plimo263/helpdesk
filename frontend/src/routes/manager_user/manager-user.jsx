@@ -1,4 +1,16 @@
-import { Avatar, Container, IconButton } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Chip,
+  Container,
+  IconButton,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemSecondaryAction,
+  ListItemText,
+  Stack,
+} from "@mui/material";
 import React, { useCallback, useEffect } from "react";
 import _ from "lodash";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,15 +24,23 @@ import {
   selectorManagerUserList,
   selectorManagerUserModal,
 } from "./manager-selectors";
-import { Icone } from "../../components";
+import { Body1, Body2, Caption, FabCustom, Icone } from "../../components";
 import ManagerUserModal from "./manager-user-modal";
 import DrawerDialog from "../../components/drawer-dialog";
-import { green, red } from "@mui/material/colors";
+import { blue, green, red } from "@mui/material/colors";
 import OptionsMenu from "../../components/options-menu";
+import { useTheme } from "@emotion/react";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import ManagerUserAddUpd from "./manager-user-add-upd";
 
 const STR = {
   titleDelete: "Clique para excluir o usuario",
+  labelOptionDelete: "Excluir Usuário",
   labelOptionResetPasswd: "Resetar senha",
+  labelOptionEdit: "Editar Usuário",
+  isActive: "Ativo",
+  isInactive: "Inativo",
+  isAgent: "Suporte",
 };
 
 const FIELDS = {
@@ -43,6 +63,16 @@ const HEADERS = [
   "OPÇÕES",
 ];
 
+const isActive = (status) => {
+  switch (status) {
+    case "S":
+      return STR.isActive;
+    case "N":
+    default: // N
+      return STR.isInactive;
+  }
+};
+
 const getColor = (status) => {
   switch (status) {
     case "S":
@@ -64,9 +94,14 @@ const getIcon = (status) => {
 };
 
 function ManagerUser() {
+  const isMobile = useTheme()?.isMobile;
+
   const dispatch = useDispatch();
+
   const usersList = useSelector(selectorManagerUserList);
+
   let bodyRows = usersList || [];
+
   const modal = useSelector(selectorManagerUserModal);
 
   const getRowsFormat = (rows) => {
@@ -127,8 +162,8 @@ function ManagerUser() {
 
   //
   useEffect(() => {
-    dispatch(managerUserInit());
-  }, [dispatch]);
+    if (!usersList) dispatch(managerUserInit());
+  }, [usersList, dispatch]);
   //
   const onClickAdd = useCallback(() => {
     dispatch(
@@ -150,21 +185,118 @@ function ManagerUser() {
           fecharModal={fnCloseModal}
         />
       )}
-      <Container maxWidth="lg">
-        <RowPaginateTemplate
-          onClickAdd={onClickAdd}
-          titlePage=""
-          pageCurrent={false}
-          header={HEADERS}
-          rows={bodyRows}
-        />
+      <Container disableGutters maxWidth="lg">
+        {isMobile ? (
+          <ListMobile rows={usersList} />
+        ) : (
+          <RowPaginateTemplate
+            onClickAdd={onClickAdd}
+            titlePage=""
+            pageCurrent={false}
+            header={HEADERS}
+            rows={bodyRows}
+          />
+        )}
       </Container>
     </>
   );
 }
 //
+const ListMobile = ({ rows }) => {
+  const history = useHistory();
+
+  const onAddUser = useCallback(() => {
+    history.push(ManagerUserAddUpd.rota);
+  }, [history]);
+
+  return (
+    <>
+      <List>
+        {rows?.map((ele, idx) => (
+          <ListItemUserMobile
+            {...ele}
+            register={ele}
+            key={idx}
+            isDivider={idx < rows.length - 1}
+          />
+        ))}
+      </List>
+      <FabCustom onClick={onAddUser} icon="Add" />
+    </>
+  );
+};
+const ListItemUserMobile = ({
+  isDivider,
+  name,
+  avatar,
+  email,
+  sector,
+  is_agent,
+  active,
+  register,
+}) => {
+  return (
+    <ListItem divider={isDivider}>
+      <ListItemAvatar>
+        <Avatar alt={name} src={avatar} />
+      </ListItemAvatar>
+      <ListItemText
+        primary={
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Body1>{name}</Body1>
+            <Chip
+              icon={<Icone icone={getIcon(active)} />}
+              size="small"
+              label={isActive(active)}
+              sx={{ background: getColor(active) }}
+            />
+          </Stack>
+        }
+        secondary={
+          <Stack gap={0.5} alignItems="flex-start">
+            <Body2>{email}</Body2>
+            <Stack direction="row" gap={1}>
+              <Box sx={{ px: 0.5, borderRadius: 1, background: blue[200] }}>
+                <Caption>{sector?.name}</Caption>
+              </Box>
+              {is_agent === "S" && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.2,
+                    px: 0.5,
+                    borderRadius: 1,
+                    background: green[500],
+                  }}
+                >
+                  <Icone icone="Build" sx={{ fontSize: 12 }} />
+                  <Caption>{STR.isAgent}</Caption>
+                </Box>
+              )}
+            </Stack>
+          </Stack>
+        }
+      />
+      <ListItemSecondaryAction>
+        <MoreOptions register={register} />
+      </ListItemSecondaryAction>
+    </ListItem>
+  );
+};
+//
 const MoreOptions = ({ register }) => {
+  const isMobile = useTheme()?.isMobile;
+
+  const history = useHistory();
+
   const dispatch = useDispatch();
+
   const onEditPassword = useCallback(() => {
     dispatch(
       managerUserSetModal({
@@ -175,6 +307,20 @@ const MoreOptions = ({ register }) => {
       })
     );
   }, [register, dispatch]);
+  //
+  const onDeleteUser = useCallback(() => {
+    dispatch(
+      managerUserSetModal({
+        type: ManagerUserModal.modal.DEL,
+        data: { managerUser: register },
+      })
+    );
+  }, [dispatch, register]);
+
+  const onEditUser = useCallback(() => {
+    history.push(ManagerUserAddUpd.rota, register);
+  }, [history, register]);
+
   const options = [
     {
       icon: "VpnKey",
@@ -182,6 +328,21 @@ const MoreOptions = ({ register }) => {
       onClick: onEditPassword,
     },
   ];
+
+  if (isMobile) {
+    options.splice(0, 0, {
+      icon: "Edit",
+      label: STR.labelOptionEdit,
+      onClick: onEditUser,
+    });
+
+    options.push({
+      icon: "Delete",
+      label: STR.labelOptionDelete,
+      onClick: onDeleteUser,
+    });
+  }
+
   return <OptionsMenu options={options} />;
 };
 

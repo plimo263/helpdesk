@@ -16,8 +16,8 @@ import {
   Box,
   Button,
   Chip,
+  Container,
   Divider,
-  Fab,
   Grid,
   ListItem,
   ListItemAvatar,
@@ -42,6 +42,7 @@ import {
   InputBusca,
   Pesquisando,
   ScrollInfinito,
+  FabCustom,
 } from "../../components";
 import { useCallback } from "react";
 import _ from "lodash";
@@ -149,16 +150,10 @@ const CorpoMobile = () => {
   }, [history]);
 
   return (
-    <>
+    <Container maxWidth="md">
       {dados && <PainelPrincipalTicket isMobile />}
-      <Fab
-        onClick={onClickAddTicket}
-        sx={{ position: "fixed", right: 16, bottom: 72 }}
-        color="primary"
-      >
-        <Icone icone="Add" />
-      </Fab>
-    </>
+      <FabCustom icon="Add" onClick={onClickAddTicket} />
+    </Container>
   );
 };
 //
@@ -587,7 +582,7 @@ const PainelPrincipalTicket = memo(({ isMobile }) => {
         sx={{
           width: "calc(100% - 16px)",
           overflowX: "auto",
-          px: 1,
+          p: 1,
         }}
         spacing={1}
       >

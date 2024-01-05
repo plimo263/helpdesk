@@ -27,25 +27,28 @@ export const configHelpdeskInit = () => (dispatch) => {
   );
 };
 
-export const configHelpdeskAddUpd = (obj, setWait) => (dispatch) => {
-  fetchRedux(
-    ROUTES[0],
-    obj.id ? "PUT" : "POST",
-    obj,
-    (response) => {
-      toast.dark(response.sucesso, { type: "success" });
+export const configHelpdeskAddUpd =
+  (obj, setWait, fnCallback) => (dispatch) => {
+    fetchRedux(
+      ROUTES[0],
+      obj.id ? "PUT" : "POST",
+      obj,
+      (response) => {
+        toast.dark(response.sucesso, { type: "success" });
 
-      dispatch({
-        type: obj.id ? CONFIG_HELPDESK_UPD : CONFIG_HELPDESK_ADD,
-        data: response.data,
-      });
-    },
-    () => {
-      setWait();
-    },
-    (err) => ToastErro(err)
-  );
-};
+        if (fnCallback) fnCallback();
+
+        dispatch({
+          type: obj.id ? CONFIG_HELPDESK_UPD : CONFIG_HELPDESK_ADD,
+          data: response.data,
+        });
+      },
+      () => {
+        setWait();
+      },
+      (err) => ToastErro(err)
+    );
+  };
 
 export const configHelpdeskDel = (obj, setWait) => (dispatch) => {
   fetchRedux(

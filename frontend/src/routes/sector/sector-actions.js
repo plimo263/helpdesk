@@ -27,12 +27,13 @@ export const sectorInit = () => (dispatch) => {
   );
 };
 // Adiciona/atualiza um setor
-export const sectorAddUpd = (obj, setWait) => (dispatch) => {
+export const sectorAddUpd = (obj, setWait, fnCallback) => (dispatch) => {
   fetchRedux(
     ROUTES[0],
     obj.id ? "PUT" : "POST",
     obj,
     (response) => {
+      if (fnCallback) fnCallback();
       //
       dispatch({
         type: obj.id ? SECTOR_UPD : SECTOR_ADD,

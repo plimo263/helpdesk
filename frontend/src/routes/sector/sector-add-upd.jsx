@@ -1,4 +1,4 @@
-import { Stack } from "@mui/material";
+import { Container, useTheme } from "@mui/material";
 import React, { useCallback } from "react";
 import { useToggle } from "react-use";
 import { EntradaForm, H6 } from "../../components";
@@ -6,6 +6,10 @@ import * as yup from "yup";
 import { VALIDADOR_TIPO, obterValidador } from "../../utils/validadores";
 import { useDispatch } from "react-redux";
 import { sectorAddUpd } from "./sector-actions";
+import {
+  useHistory,
+  useLocation,
+} from "react-router-dom/cjs/react-router-dom.min";
 
 const STR = {
   labelSector: "Setor",
@@ -24,15 +28,25 @@ const FIELDS_FORM = {
 };
 
 function SectorAddUpd({ sector }) {
+  const isMobile = useTheme()?.isMobile;
+
+  const history = useHistory();
+
   const dispatch = useDispatch();
+
   const [wait, setWait] = useToggle();
+
+  const sectorFromMobile = useLocation()?.state;
+
+  const sectorForm = sectorFromMobile || sector;
+
   const schema = [
     {
       type: "text",
       name: FIELDS_FORM.sector,
       label: STR.labelSector,
       placeholder: STR.labelSector,
-      defaultValue: sector ? sector.name : null,
+      defaultValue: sectorForm ? sectorForm.name : null,
     },
     {
       type: "radio",
@@ -41,7 +55,7 @@ function SectorAddUpd({ sector }) {
         ["A", STR.situationActive],
         ["B", STR.situationDeactivate],
       ],
-      defaultValue: sector ? sector.situation : null,
+      defaultValue: sectorForm ? sectorForm.situation : null,
       name: FIELDS_FORM.situation,
       label: STR.labelSituation,
       placeholder: STR.labelSituation,
@@ -64,16 +78,20 @@ function SectorAddUpd({ sector }) {
         [FIELDS_FORM.sector]: val[FIELDS_FORM.sector],
         [FIELDS_FORM.situation]: val[FIELDS_FORM.situation],
       };
-      if (sector) {
-        obj.id = sector.id;
+      if (sectorForm) {
+        obj.id = sectorForm.id;
+      }
+      let fn;
+      if (isMobile) {
+        fn = history.goBack;
       }
       // Atualizar/incluir novo sector
-      dispatch(sectorAddUpd(obj, setWait));
+      dispatch(sectorAddUpd(obj, setWait, fn));
     },
-    [sector, setWait, dispatch]
+    [history, isMobile, sectorForm, setWait, dispatch]
   );
   return (
-    <Stack>
+    <Container maxWidth={false}>
       <H6>{!sector ? STR.titleAdd : STR.titleUpd}</H6>
       <EntradaForm
         schema={schema}
@@ -82,8 +100,10 @@ function SectorAddUpd({ sector }) {
         wait={wait}
         onSubmit={onSubmit}
       />
-    </Stack>
+    </Container>
   );
 }
+
+SectorAddUpd.rota = "/sector_view_add_upd";
 
 export default SectorAddUpd;

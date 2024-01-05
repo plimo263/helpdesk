@@ -1,4 +1,4 @@
-import { Stack } from "@mui/material";
+import { Container, useTheme } from "@mui/material";
 import React, { useCallback, useEffect } from "react";
 import { EntradaForm, H6 } from "../../components";
 import { useToggle } from "react-use";
@@ -9,6 +9,10 @@ import * as yup from "yup";
 import _ from "lodash";
 import { VALIDADOR_TIPO, obterValidador } from "../../utils/validadores";
 import { managerUserAddUpd } from "./manager-user-actions";
+import {
+  useHistory,
+  useLocation,
+} from "react-router-dom/cjs/react-router-dom.min";
 
 const FIELDS_FORM = {
   name: "name",
@@ -65,6 +69,11 @@ const formatSector = (rows) => {
 
 function ManagerUserAddUpd({ managerUser }) {
   const { data, setFetch, error } = useFetch(ROUTES[0], "GET");
+
+  const userToEditMobile = useLocation()?.state;
+
+  const userData = userToEditMobile || managerUser;
+
   //
   useEffect(() => {
     setFetch({});
@@ -75,18 +84,24 @@ function ManagerUserAddUpd({ managerUser }) {
   }, [error]);
   //
   return (
-    <Stack>
-      <H6>{managerUser ? STR.titleUpd : STR.titleAdd}</H6>
+    <Container maxWidth={false}>
+      <H6>{userData ? STR.titleUpd : STR.titleAdd}</H6>
       {data ? (
-        <Form sectors={formatSector(data)} managerUser={managerUser} />
+        <Form sectors={formatSector(data)} managerUser={userData} />
       ) : null}
-    </Stack>
+    </Container>
   );
 }
 //
 const Form = ({ managerUser, sectors }) => {
+  const isMobile = useTheme()?.isMobile;
+
+  const history = useHistory();
+
   const [wait, setWait] = useToggle();
+
   const dispatch = useDispatch();
+
   let objValidatorError = {
     [FIELDS_FORM.name]: obterValidador(VALIDADOR_TIPO.texto, 3),
     [FIELDS_FORM.email]: obterValidador(VALIDADOR_TIPO.email),
@@ -199,9 +214,14 @@ const Form = ({ managerUser, sectors }) => {
         obj.id = managerUser.id;
       }
 
-      dispatch(managerUserAddUpd(obj, setWait));
+      let fn;
+      if (isMobile) {
+        fn = history.goBack;
+      }
+
+      dispatch(managerUserAddUpd(obj, setWait, fn));
     },
-    [dispatch, managerUser, setWait]
+    [dispatch, isMobile, history, managerUser, setWait]
   );
 
   return (
@@ -214,5 +234,7 @@ const Form = ({ managerUser, sectors }) => {
     />
   );
 };
+
+ManagerUserAddUpd.rota = "/manager_user_add_upd";
 
 export default ManagerUserAddUpd;

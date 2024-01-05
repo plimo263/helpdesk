@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "helpdesk"
+version = "0.1.0"
+description = ""
+authors = ["Marcos Felipe <plimo263@gmail.com>"]
+readme = "README.md"
+
+
+[tool.taskipy.tasks]
+pre_initdb = { cmd = "rm -rf instance ", help = "Remove o banco de dados sqlite" }
+initdb = { cmd = "python3 init_db.py", help = "Preenche os dados iniciais do banco" }
+
+pre_install = "python3 -m venv .venv"
+install = { cmd = "sh .venv/bin/activate && pip install -r requirements.txt", help = "Realiza a instalação das dependências em ambiente virtual" }
+
+build = { cmd = "docker build . -t helpdesk:latest", help = "Constrói uma imagem Docker pronta para uso" }
+
+debug = { cmd = 'gunicorn -t 240 -w 1 -b 0.0.0.0:5000 --reload --access-logfile - "app:app"', help = "Executa em modo debug (reload ativado)" }
+deploy = { cmd = 'gunicorn -t 480 -w 1 -b 0.0.0.0:5000 --access-logfile - "app:app"', help = "Executa em modo produção" }
